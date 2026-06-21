@@ -1,0 +1,279 @@
+/* 1. IMPORT FONT */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* 2. RESET & BASE */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #fdfafc;
+    /* Soft pink-white */
+    color: #333;
+}
+
+/* 4. LAYOUT CONTAINER */
+.main-container {
+    display: flex;
+    flex-direction: row;
+    max-width: 1250px;
+    margin: 40px auto;
+    gap: 40px;
+    padding: 0 20px;
+    align-items: flex-start;
+}
+
+/* 5. SEARCH SIDEBAR */
+.search-sidebar {
+    width: 320px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 24px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 100px;
+    flex-shrink: 0;
+}
+
+.search-sidebar h2 {
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 24px;
+    font-size: 24px;
+    color: #222;
+}
+
+.search-sidebar form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-group input,
+.input-group select {
+    padding: 14px;
+    background-color: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.3s ease;
+    width: 100%;
+    outline: none;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    background-color: #fff;
+    border-color: #ff8da1;
+    box-shadow: 0 0 0 4px rgba(255, 141, 161, 0.15);
+}
+
+.btn-search {
+    padding: 16px;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #ff8da1 0%, #ffb6c1 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    box-shadow: 0 8px 20px rgba(255, 182, 193, 0.4);
+}
+
+.btn-search:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(255, 182, 193, 0.6);
+    background: linear-gradient(135deg, #ff7a90 0%, #ff9aa2 100%);
+}
+
+/* 6. RESULTS AREA */
+.results-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sitter-card {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(255, 182, 193, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #ffe4e8;
+    gap: 24px;
+}
+
+.sitter-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(255, 105, 180, 0.15);
+    border-color: #ffb6c1;
+}
+
+.sitter-img {
+    flex-shrink: 0;
+}
+
+.sitter-img img {
+    width: 120px;
+    height: 120px;
+    border-radius: 20px;
+    object-fit: cover;
+    background-color: #f5f5f5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.sitter-info {
+    flex-grow: 1;
+}
+
+.sitter-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: #111;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+.sitter-location,
+.sitter-distance {
+    font-size: 13.5px;
+    color: #666;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sitter-services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.service-tag {
+    background-color: #fff0f5;
+    color: #ff6b81;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sitter-action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+    min-width: 140px;
+}
+
+.sitter-price {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ff6b81;
+}
+
+.sitter-price span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+}
+
+.btn-view {
+    text-decoration: none;
+    background-color: #fff;
+    color: #ff6b81;
+    border: 2px solid #ff6b81;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-align: center;
+    width: 100%;
+}
+
+.sitter-card:hover .btn-view {
+    background-color: #ff6b81;
+    border-color: #ff6b81;
+    color: #fff;
+}
+
+/* 7. RESPONSIVE */
+@media (max-width: 900px) {
+    .main-container {
+        flex-direction: column;
+    }
+
+    .search-sidebar {
+        width: 100%;
+        position: static;
+    }
+
+    .search-sidebar form {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .input-group {
+        width: calc(50% - 10px);
+    }
+
+    .btn-search {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .sitter-card {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .sitter-action {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #eee;
+        padding-top: 16px;
+    }
+
+    .btn-view {
+        width: auto;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+}

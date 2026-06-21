@@ -1,0 +1,306 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #fdfafc;
+}
+
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+    background: white;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+/*color: #ffb6c1;*/
+.logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: rgb(176, 2, 124);
+    font-family: 'Playfair Display', serif;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.nav-links a { text-decoration: none; color: #555; margin: 0 15px; font-weight: 500; }
+
+/* SERVICES SECTION */
+.services { padding: 80px 20px; text-align: center; }
+
+.services h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.subtitle { color: #888; margin-bottom: 40px; }
+
+.nav-right{
+    display: flex;
+    align-items: center;
+}
+
+.circle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: 0.2s;
+    box-shadow: none;
+    background: transparent;
+    padding: 0 !important; /* Forces removal of generic nav-right a padding */
+}
+
+.circle-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.circle-btn:hover {
+    transform: scale(1.1);
+}
+
+
+/* TABS */
+.tabs { margin-bottom: 50px; }
+.tab-btn {
+    padding: 12px 30px;
+    margin: 5px;
+    border-radius: 30px;
+    border: 1px solid #eee;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.tab-btn.active { background: #333; color: white; }
+
+   /* HERO */
+        .hero {
+            height: 90vh;
+            background: url('../photos/catbackground.jpg') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: #6c0652;
+            padding: 12px 25px;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* SERVICES */
+        .services {
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .service-grid {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .service-card {
+            width: 300px;
+            background: rgb(176, 2, 124);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .service-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .info {
+            padding: 15px;
+            text-align: left;
+        }
+
+        /* HOW IT WORKS */
+        .how-it-works {
+            background: #f9f9f9;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .steps-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .step-card {
+            width: 250px;
+        }
+
+        .image-circle img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* TESTIMONIAL */
+        .testimonials {
+            padding: 60px;
+            text-align: center;
+        }
+
+        .testimonial-card {
+            background: #fff3e6;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: auto;
+        }
+
+/* GRID SYSTEM (Ini ubat bagi tak terabur) */
+.service-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.service-card {
+    width: 350px;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    text-align: left;
+    transition: 0.3s;
+}
+
+.service-card:hover { transform: translateY(-10px); }
+
+.service-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.info { padding: 25px; }
+.info h2 { font-family: 'Playfair Display', serif; margin-bottom: 10px; }
+.info p { font-size: 14px; color: #666; margin-bottom: 10px; }
+
+/* HOW IT WORKS (Section Pink) */
+.how-it-works {
+    padding: 100px 20px;
+    background-color: #fff5f6;
+    text-align: center;
+}
+
+.section-title { font-family: 'Playfair Display', serif; font-size: 38px; margin-bottom: 50px; }
+
+.steps-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.step-card {
+    background: white;
+    padding: 40px 20px;
+    border-radius: 25px;
+    width: 320px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+}
+
+.image-circle {
+    width: 150px;
+    height: 150px;
+    background-color: #ffe4e1;
+    border-radius: 50%;
+    margin: 0 auto 25px;
+    overflow: hidden;
+    border: 5px solid #fff;
+}
+
+.image-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+.step-card h3 { font-family: 'Playfair Display', serif; margin-bottom: 10px; }
+
+
+/* UTILITY */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+/* Container for the right side links */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* This creates a clean space between Sign Up and Log In */
+}
+
+/* Base style for both Sign Up and Log In buttons */
+.nav-right a {
+    text-decoration: none; /* Removes that ugly default underline */
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+/* Style specifically for Log In (Let's make it a clean text link) */
+.nav-right a[href*="login.php"], 
+.nav-right a[href*="signin.php"] {
+    color: #333333; /* Clean dark grey/black instead of default purple */
+}
+
+.nav-right a[href*="login.php"]:hover, 
+.nav-right a[href*="signin.php"]:hover {
+    color: #000000;
+    background-color: #f5f5f5; /* Subtle background highlight on hover */
+}
+
+/* Style specifically for Sign Up (Let's make it stand out as a clean button) */
+.nav-right a[href*="signup.php"] {
+    color: #ffffff;
+    background-color: #000000; /* Solid black pill button */
+    border-radius: 20px; /* Makes it a nice rounded button */
+}
+
+.nav-right a[href*="signup.php"]:hover {
+    background-color: #333333; /* Sleek dark grey hover effect */
+    transform: translateY(-1px); /* Soft micro-interaction lift */
+}

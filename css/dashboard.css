@@ -1,0 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Poppins', sans-serif; background-color: #fdfafc; color: #333; }
+
+/* NAVBAR KONSISTEN */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+    background: white;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+.logo { font-size: 28px; font-weight: bold; color: rgb(176, 2, 124); font-family: 'Playfair Display', serif; text-decoration: none; cursor: pointer; }
+.nav-right { display: flex; gap: 12px; align-items: center; }
+.circle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: 0.2s;
+}
+.circle-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.circle-btn:hover { transform: scale(1.1); }
+
+/* Red Dot Notification */
+.notification-dot {
+    width: 10px; height: 10px; background: #ff4d4d; border-radius: 50%;
+    position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+}
+
+/* LAYOUT DASHBOARD */
+.dashboard-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 30px auto;
+    background: white;
+    height: calc(100vh - 140px);
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+}
+
+/* SIDEBAR KIRI */
+.sidebar {
+    width: 280px;
+    background-color: #fff;
+    border-right: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+.sidebar-link {
+    padding: 25px 35px;
+    text-decoration: none;
+    color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid #f9f9f9;
+    transition: 0.3s;
+    position: relative;
+}
+.sidebar-link:hover, .sidebar-link.active {
+    background-color: #fff5f6;
+    color: #ffb6c1;
+    border-left: 6px solid #ffb6c1;
+}
+
+/* KANDUNGAN UTAMA */
+.main-content { 
+    flex: 1; 
+    padding: 50px; 
+    overflow-y: auto; 
+}
+h2 { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 30px; }
+
+/* BOOKING BOX */
+.booking-box {
+    background: #fff;
+    padding: 30px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+}
+.detail-table { width: 100%; border-collapse: collapse; }
+.detail-table td { padding: 12px 0; border-bottom: 1px solid #f9f9f9; }
+.btn-done {
+    background-color: #ffb6c1;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    margin-top: 20px;
+}
+.btn-done:hover { background-color: #ff99aa; }
+.status-tag {
+    background: #fff3cd; color: #856404; padding: 6px 12px;
+    border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase;
+}
+
+/* LIST & CARDS (HISTORY) */
+.item-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    transition: 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+.item-card:hover { transform: translateX(5px); border-color: #ffb6c1; }
+.status-pill { padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+
+#history_list p, #bookings_list p { text-align: center; color: #888; margin-top: 50px; }
+
+/* CHAT SYSTEM */
+.chat-sidebar {
+    width: 320px;
+    background: white;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+.search-box { padding: 20px; border-bottom: 1px solid #eee; }
+.search-box input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
+.contact-list { overflow-y: auto; flex: 1; }
+.contact { padding: 18px 20px; border-bottom: 1px solid #f2f2f2; cursor: pointer; transition: 0.2s; position: relative; }
+.contact:hover { background: #fafafa; }
+.contact.active { background: #fff4f5; }
+.contact-name { font-weight: bold; margin-bottom: 5px; }
+.contact-preview { color: #666; font-size: 14px; }
+.online { color: green; font-size: 13px; }
+.online-dot { display: inline-block; width: 8px; height: 8px; background: green; border-radius: 50%; margin-right: 5px; }
+
+.chat-container { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    background: #fafafa; 
+    min-width: 0; 
+}
+.chat-header { 
+    padding: 20px 30px; 
+    border-bottom: 1px solid #eee; 
+    background: white; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+.chat-user { font-weight: bold; font-size: 18px; }
+.chat-status { color: #2ecc71; font-size: 13px; }
+.chat-messages { 
+    flex: 1; 
+    padding: 30px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+}
+.msg { 
+    padding: 14px 20px; 
+    border-radius: 18px; 
+    max-width: 70%; 
+    font-size: 14.5px; 
+    line-height: 1.5; 
+}
+.msg.received { background: white; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+.msg.sent { background: #333; color: white; align-self: flex-end; }
+.read-status { display: block; font-size: 11px; color: #aaa; text-align: right; margin-top: 5px; }
+.msg.sent .read-status { color: #ccc; }
+
+.chat-input { 
+    padding: 20px 30px; 
+    background: white; 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    border-top: 1px solid #eee; 
+}
+.chat-input textarea { 
+    flex: 1; 
+    resize: none; 
+    height: 55px; 
+    border-radius: 14px; 
+    border: 1px solid #ddd; 
+    padding: 15px; 
+    outline: none; 
+    font-family: inherit; 
+}
+.emoji-btn, .upload-btn, .send-btn { 
+    border: none; 
+    cursor: pointer; 
+    border-radius: 12px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.emoji-btn, .upload-btn { 
+    width: 50px; 
+    height: 50px; 
+    background: #f2f2f2; 
+    font-size: 20px; 
+    transition: 0.2s;
+}
+.emoji-btn:hover, .upload-btn:hover { background: #e0e0e0; }
+.send-btn { 
+    background: #333; 
+    color: white; 
+    padding: 0 25px; 
+    height: 55px; 
+    font-weight: bold; 
+    transition: 0.2s; 
+}
+.send-btn:hover { background: #ffb6c1; color: #333; }

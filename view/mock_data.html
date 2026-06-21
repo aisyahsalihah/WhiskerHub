@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masukkan Mock Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .btn { padding: 15px 30px; font-size: 16px; background-color: #1a2530; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        .btn:hover { background-color: #0d141b; }
+        #status { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>Masukkan Data Mock untuk Pengguna & Penjaga Kucing (Sitter)</h2>
+    <p>Data ini mempunyai lokasi yang berbeza-beza (KL, Selangor, Penang, Johor, Pahang).</p>
+    <button id="insertBtn" class="btn">Masukkan Data Sekarang</button>
+    <div id="status"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        // Firebase Config sama macam dalam projek asal
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzKctHKMlufU_daqSC7xPfVw0JZqMVf1w",
+            authDomain: "whiskerhub-67889.firebaseapp.com",
+            projectId: "whiskerhub-67889"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Data Mock
+        const mockData = [
+            {
+                uid: "mock_uid_1",
+                name: "Ahmad Sitter KL",
+                email: "ahmad.kl@example.com",
+                phone: "0123456781",
+                bandar: "Kuala Lumpur",
+                negeri: "W.P. Kuala Lumpur",
+                kadar: "15.00",
+                bio: "Berpengalaman menjaga kucing lebih 5 tahun di sekitar KL.",
+                services: ["boarding", "daycare"],
+                lat: 3.1579,
+                lng: 101.7116,
+                avatar: "https://ui-avatars.com/api/?name=Ahmad+KL&background=random"
+            },
+            {
+                uid: "mock_uid_2",
+                name: "Siti Shah Alam",
+                email: "siti.sa@example.com",
+                phone: "0123456782",
+                bandar: "Shah Alam",
+                negeri: "Selangor",
+                kadar: "12.00",
+                bio: "Kucing adalah kawan baik saya. Sedia menjaga di Shah Alam.",
+                services: ["daycare", "grooming"],
+                lat: 3.0738,
+                lng: 101.5183,
+                avatar: "https://ui-avatars.com/api/?name=Siti+SA&background=random"
+            },
+            {
+                uid: "mock_uid_3",
+                name: "Kamal Bangi",
+                email: "kamal.bangi@example.com",
+                phone: "0123456783",
+                bandar: "Bangi",
+                negeri: "Selangor",
+                kadar: "10.00",
+                bio: "Kawasan rumah luas, sesuai untuk kucing bermain.",
+                services: ["boarding"],
+                lat: 2.9298,
+                lng: 101.7801,
+                avatar: "https://ui-avatars.com/api/?name=Kamal+B&background=random"
+            },
+            {
+                uid: "mock_uid_4",
+                name: "Lisa Penang",
+                email: "lisa.png@example.com",
+                phone: "0123456784",
+                bandar: "George Town",
+                negeri: "Pulau Pinang",
+                kadar: "20.00",
+                bio: "Professional cat groomer and sitter di Penang.",
+                services: ["boarding", "daycare", "grooming"],
+                lat: 5.4141,
+                lng: 100.3288,
+                avatar: "https://ui-avatars.com/api/?name=Lisa+P&background=random"
+            },
+            {
+                uid: "mock_uid_5",
+                name: "Johan JB",
+                email: "johan.jb@example.com",
+                phone: "0123456785",
+                bandar: "Johor Bahru",
+                negeri: "Johor",
+                kadar: "14.00",
+                bio: "Perkhidmatan penjagaan kucing di JB, harga berpatutan.",
+                services: ["daycare"],
+                lat: 1.4927,
+                lng: 103.7414,
+                avatar: "https://ui-avatars.com/api/?name=Johan+J&background=random"
+            },
+            {
+                uid: "mock_uid_6",
+                name: "Aminah Kuantan",
+                email: "aminah.kuantan@example.com",
+                phone: "0123456786",
+                bandar: "Kuantan",
+                negeri: "Pahang",
+                kadar: "13.00",
+                bio: "Saya akan layan kucing anda macam kucing saya sendiri.",
+                services: ["boarding", "grooming"],
+                lat: 3.8126,
+                lng: 103.3256,
+                avatar: "https://ui-avatars.com/api/?name=Aminah+K&background=random"
+            }
+        ];
+
+        document.getElementById("insertBtn").addEventListener("click", async () => {
+            const statusDiv = document.getElementById("status");
+            statusDiv.innerHTML = "Sedang memasukkan data... Sila tunggu.";
+            statusDiv.style.color = "orange";
+
+            try {
+                for (const data of mockData) {
+                    // 1. Masukkan data 'pengguna'
+                    await setDoc(doc(db, "pengguna", data.uid), {
+                        fld_user_ID: data.uid,
+                        fld_user_name: data.name,
+                        fld_user_email: data.email,
+                        fld_user_phone: data.phone,
+                        createdAt: serverTimestamp()
+                    });
+
+                    // 2. Masukkan data 'penjaga_kucing' (Sitter)
+                    await setDoc(doc(db, "penjaga_kucing", data.uid), {
+                        fld_user_ID: data.uid,
+                        fld_user_fullname: data.name,
+                        fld_user_email: data.email,
+                        fld_user_phone: data.phone,
+                        fld_user_bandar: data.bandar,
+                        fld_user_negeri: data.negeri,
+                        fld_user_kadarBayaran: data.kadar,
+                        fld_user_pengalaman: data.bio,
+                        fld_user_jenisPerkhidmatan: data.services,
+                        fld_user_ketersediaan: "Available",
+                        fld_user_avatar: data.avatar,
+                        fld_user_profilePic: data.avatar,
+                        fld_lat: data.lat,
+                        fld_lng: data.lng
+                    });
+                }
+
+                statusDiv.innerHTML = "✅ Berjaya! 6 Mock Data untuk Pengguna & Penjaga Kucing telah dimasukkan.";
+                statusDiv.style.color = "green";
+                
+            } catch (error) {
+                console.error("Ralat:", error);
+                statusDiv.innerHTML = "❌ Gagal: " + error.message;
+                statusDiv.style.color = "red";
+            }
+        });
+    </script>
+</body>
+</html>
