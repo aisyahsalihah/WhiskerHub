@@ -285,6 +285,14 @@ auth.onAuthStateChanged(async (user) => {
                         <td><strong>RM ${parseFloat(booking.fld_tempahan_jumlah).toFixed(2)}</strong></td>
                     </tr>
                     <tr>
+                        <td><strong>TIME:</strong></td>
+                        <td>${booking.fld_tempahan_masaMula || "-"} to ${booking.fld_tempahan_masaTamat || "-"}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ADDRESS:</strong></td>
+                        <td>${booking.fld_tempahan_alamat || "-"}</td>
+                    </tr>
+                    <tr>
                         <td><strong>STATUS:</strong></td>
                         <td><span class="status-tag">${status}</span></td>
                     </tr>

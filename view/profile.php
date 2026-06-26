@@ -340,8 +340,25 @@
                         <input type="text" id="negeri">
                     </div>
                     <div class="input-group">
-                        <label>Rate per Hour (RM)</label>
-                        <input type="number" id="rate" step="0.50">
+                        <label>Boarding Rate (RM / day)</label>
+                        <input type="number" id="rate_boarding" step="0.50">
+                    </div>
+                    <div class="input-group">
+                        <label>Daycare Rate (RM / hour)</label>
+                        <input type="number" id="rate_daycare" step="0.50">
+                    </div>
+                    <div class="input-group">
+                        <label>Grooming Rate (RM / session)</label>
+                        <input type="number" id="rate_grooming" step="0.50">
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Services Offered</label>
+                    <div style="display: flex; gap: 20px; margin-top: 5px;">
+                        <label><input type="checkbox" value="boarding" class="service-checkbox"> Boarding</label>
+                        <label><input type="checkbox" value="daycare" class="service-checkbox"> Daycare</label>
+                        <label><input type="checkbox" value="grooming" class="service-checkbox"> Grooming</label>
                     </div>
                 </div>
 
@@ -517,7 +534,7 @@
     };
 
     auth.onAuthStateChanged(async (user) => {
-        if (!user) { window.location.href = "signin.php"; return; }
+        if (!user) { window.location.href = "login.php"; return; }
         
         document.getElementById("email").value = user.email;
 
@@ -541,7 +558,15 @@
                 document.getElementById("sitterFields").style.display = "block";
                 document.getElementById("bandar").value = data.fld_user_bandar || "";
                 document.getElementById("negeri").value = data.fld_user_negeri || "";
-                document.getElementById("rate").value = data.fld_user_kadarBayaran || "";
+                document.getElementById("rate_boarding").value = data.fld_rate_boarding || "";
+                document.getElementById("rate_daycare").value = data.fld_rate_daycare || data.fld_user_kadarBayaran || "";
+                document.getElementById("rate_grooming").value = data.fld_rate_grooming || "";
+
+                // Load existing services
+                const services = data.fld_user_jenisPerkhidmatan || [];
+                document.querySelectorAll(".service-checkbox").forEach(cb => {
+                    cb.checked = services.includes(cb.value);
+                });
 
                 // Load existing gallery
                 if (Array.isArray(data.fld_user_gallery)) {
@@ -618,6 +643,12 @@
                 }
             }
 
+            // Get selected services
+            let services = [];
+            document.querySelectorAll(".service-checkbox:checked").forEach(cb => {
+                services.push(cb.value);
+            });
+
             // 1. Update Firestore
             const docRef = doc(db, currentRole, user.uid);
             let updateObj = currentRole === "pengguna" 
@@ -628,7 +659,11 @@
                     fld_user_pengalaman: bio,
                     fld_user_bandar: document.getElementById("bandar").value,
                     fld_user_negeri: document.getElementById("negeri").value,
-                    fld_user_kadarBayaran: document.getElementById("rate").value,
+                    fld_rate_boarding: document.getElementById("rate_boarding").value || "0",
+                    fld_rate_daycare: document.getElementById("rate_daycare").value || "0",
+                    fld_rate_grooming: document.getElementById("rate_grooming").value || "0",
+                    fld_user_kadarBayaran: document.getElementById("rate_daycare").value || "0",
+                    fld_user_jenisPerkhidmatan: services,
                     fld_user_gallery: finalGalleryUrls,
                     fld_user_unavailableDates: unavailableDates
                   };

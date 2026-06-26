@@ -65,29 +65,30 @@
         </div>
     </div>
 
-    <div class="input-group" style="flex: 1;">
-        <label>Rate per Hour (RM)</label>
-        <div class="price-input-wrapper">
-            <span>RM</span>
-            <input type="number" name="hourly_rate" id="rate" placeholder="0.00" step="0.50" required>
+    <div class="input-group" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+        <div>
+            <label style="font-size: 14px; margin-bottom: 5px; display: block; font-weight: bold;">Boarding Rate (RM / day)</label>
+            <div class="price-input-wrapper">
+                <span>RM</span>
+                <input type="number" id="rate_boarding" placeholder="0.00" step="0.50">
+            </div>
+        </div>
+        <div>
+            <label style="font-size: 14px; margin-bottom: 5px; display: block; font-weight: bold;">Daycare Rate (RM / hour)</label>
+            <div class="price-input-wrapper">
+                <span>RM</span>
+                <input type="number" id="rate_daycare" placeholder="0.00" step="0.50">
+            </div>
+        </div>
+        <div>
+            <label style="font-size: 14px; margin-bottom: 5px; display: block; font-weight: bold;">Grooming Rate (RM / session)</label>
+            <div class="price-input-wrapper">
+                <span>RM</span>
+                <input type="number" id="rate_grooming" placeholder="0.00" step="0.50">
+            </div>
         </div>
     </div>
 </div>
-
-            <div class="input-group">
-                <label>Experience / Bio</label>
-                <textarea name="bio" id="bio" rows="4"></textarea>
-            </div>
-
-            <div class="input-group">
-                <label>Profile Picture</label>
-                <!-- Preview -->
-                <div id="picPreviewWrap" style="margin-bottom:10px; display:none;">
-                    <img id="picPreview" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid #ffb6c1;" alt="Preview">
-                </div>
-                <input type="file" name="profile_pic" id="profilePicInput" accept="image/*">
-            </div>
-
             <button type="submit" class="btn-register">Apply to Become a Sitter</button>
         </form>
     </div>
@@ -113,18 +114,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// 🔥 LIVE PREVIEW for profile picture
-document.getElementById("profilePicInput").addEventListener("change", function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        document.getElementById("picPreview").src = ev.target.result;
-        document.getElementById("picPreviewWrap").style.display = "block";
-    };
-    reader.readAsDataURL(file);
-});
-
+let cachedUserData = null;
 
 // 🔥 AUTO-FILL USER DATA
 onAuthStateChanged(auth, async (user) => {
@@ -137,6 +127,7 @@ onAuthStateChanged(auth, async (user) => {
 
         if (userSnap.exists()) {
             const data = userSnap.data();
+            cachedUserData = data;
 
             document.getElementById("fullname").value = data.fld_user_name || "";
             document.getElementById("email").value = data.fld_user_email || user.email || "";
@@ -182,14 +173,9 @@ document.getElementById("sitterForm").addEventListener("submit", async (e) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
 
-            // ✅ Upload profile picture if selected
-            let avatarUrl = "";
-            const picFile = document.getElementById("profilePicInput").files[0];
-            if (picFile) {
-                const storageRef = ref(storage, `avatars/${user.uid}_${Date.now()}`);
-                const snapshot = await uploadBytes(storageRef, picFile);
-                avatarUrl = await getDownloadURL(snapshot.ref);
-            }
+            // Carry over existing avatar & bio from pengguna collection if available
+            const avatarUrl = cachedUserData ? (cachedUserData.fld_user_avatar || cachedUserData.fld_user_profilePic || "") : "";
+            const bioText = cachedUserData ? (cachedUserData.fld_user_desc || "") : "";
 
             // ✅ SAVE SITTER (guna UID sebagai doc ID)
             await setDoc(doc(db, "penjaga_kucing", user.uid), {
@@ -202,13 +188,16 @@ document.getElementById("sitterForm").addEventListener("submit", async (e) => {
                 fld_user_bandar: document.getElementById("bandar").value,
                 fld_user_negeri: document.getElementById("negeri").value,
 
-                fld_user_kadarBayaran: document.getElementById("rate").value,
-                fld_user_pengalaman: document.getElementById("bio").value,
+                fld_rate_boarding: document.getElementById("rate_boarding").value || "0",
+                fld_rate_daycare: document.getElementById("rate_daycare").value || "0",
+                fld_rate_grooming: document.getElementById("rate_grooming").value || "0",
+                fld_user_kadarBayaran: document.getElementById("rate_daycare").value || "0",
+                fld_user_pengalaman: bioText,
 
                 fld_user_jenisPerkhidmatan: services,
                 fld_user_ketersediaan: "Available",
 
-                // ✅ Save picture URLs so profile.php can load them
+                // Save picture URLs from existing profile
                 fld_user_avatar: avatarUrl,
                 fld_user_profilePic: avatarUrl,
 

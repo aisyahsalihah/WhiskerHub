@@ -204,8 +204,13 @@ async function loadSitter(){
     document.getElementById("sitterLocation").innerText =
         "📍 " + data.fld_user_bandar + ", " + data.fld_user_negeri;
 
-    document.getElementById("sitterPrice").innerText =
-        "RM " + data.fld_user_kadarBayaran + "/jam";
+    let priceText = "";
+    if (data.fld_rate_boarding && Number(data.fld_rate_boarding) > 0) priceText += `Boarding: RM ${data.fld_rate_boarding}/day | `;
+    if (data.fld_rate_daycare && Number(data.fld_rate_daycare) > 0) priceText += `Daycare: RM ${data.fld_rate_daycare}/hour | `;
+    if (data.fld_rate_grooming && Number(data.fld_rate_grooming) > 0) priceText += `Grooming: RM ${data.fld_rate_grooming}/session`;
+    if (priceText.endsWith(" | ")) priceText = priceText.slice(0, -3);
+    if (!priceText) priceText = "RM " + (data.fld_user_kadarBayaran || "0") + "/jam";
+    document.getElementById("sitterPrice").innerText = priceText;
 
     document.getElementById("sitterBio").innerText =
         data.fld_user_pengalaman;

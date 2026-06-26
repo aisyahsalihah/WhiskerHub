@@ -85,12 +85,18 @@
             <!-- TARIKH -->
             <div class="input-group">
                 <label>Date From</label>
-                <input type="date" id="searchDateFrom">
+                <input type="date" id="searchDateFrom" required>
             </div>
             
             <div class="input-group">
                 <label>Date To</label>
-                <input type="date" id="searchDateTo">
+                <input type="date" id="searchDateTo" required>
+            </div>
+
+            <!-- MASA -->
+            <div class="input-group">
+                <label>Start Time</label>
+                <input type="time" id="searchTimeFrom" required>
             </div>
 
             <button type="submit" class="btn-search">
@@ -121,15 +127,20 @@ let userLat = null;
 let userLng = null;
 let currentUserUID = null; // track logged-in user to hide self from list
 
-function isOverlapping(start1, end1, start2, end2) {
-    if (!start1 || !end1 || !start2 || !end2) return false;
-    const s1 = new Date(start1);
-    const e1 = new Date(end1);
-    const s2 = new Date(start2);
-    const e2 = new Date(end2);
-    if (isNaN(s1) || isNaN(e1) || isNaN(s2) || isNaN(e2)) return false;
-    return s1 <= e2 && s2 <= e1;
+function isOverlapping(dateFrom1, timeFrom1, dateTo1, timeTo1, dateFrom2, timeFrom2, dateTo2, timeTo2) {
+    if (!dateFrom1 || !dateTo1 || !dateFrom2 || !dateTo2) return false;
+    const start1 = new Date(`${dateFrom1}T${timeFrom1 || "00:00"}`);
+    const end1 = new Date(`${dateTo1}T${timeTo1 || "23:59"}`);
+    const start2 = new Date(`${dateFrom2}T${timeFrom2 || "00:00"}`);
+    const end2 = new Date(`${dateTo2}T${timeTo2 || "23:59"}`);
+    if (isNaN(start1) || isNaN(end1) || isNaN(start2) || isNaN(end2)) return false;
+    return start1 <= end2 && start2 <= end1;
 }
+
+// Prevent choosing past dates
+const todayStr = new Date().toISOString().split("T")[0];
+document.getElementById('searchDateFrom').min = todayStr;
+document.getElementById('searchDateTo').min = todayStr;
 
 auth.onAuthStateChanged(async (user) => {
   if (user) {
@@ -255,15 +266,29 @@ window.searchSitters = function () {
     const state = (document.getElementById("searchState").value || "").toLowerCase();
     const city = (document.getElementById("searchCity").value || "").toLowerCase();
     
-    let dateFrom = document.getElementById("searchDateFrom").value;
-    let dateTo = document.getElementById("searchDateTo").value;
+    const dateFrom = document.getElementById("searchDateFrom").value;
+    const dateTo = document.getElementById("searchDateTo").value;
+    const timeFrom = document.getElementById("searchTimeFrom").value;
     
-    if (dateFrom && !dateTo) dateTo = dateFrom;
-    if (!dateFrom && dateTo) dateFrom = dateTo;
+    if (!dateFrom || !dateTo || !timeFrom) {
+        alert("Please fill in the search dates and start time first!");
+        return;
+    }
 
-    // Save dates to session storage for booking.php
-    if (dateFrom) sessionStorage.setItem("bookingStartDate", dateFrom);
-    if (dateTo) sessionStorage.setItem("bookingEndDate", dateTo);
+    // Helper to add hours
+    const addHoursToTime = (timeStr, hours) => {
+        if (!timeStr) return "23:59";
+        const [h, m] = timeStr.split(":").map(Number);
+        let newH = h + hours;
+        if (newH >= 24) newH = 23;
+        return `${String(newH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    };
+    const timeTo = addHoursToTime(timeFrom, 4); // Assume a default of 4 hours for search availability
+
+    // Save dates and start time to session storage for booking.php
+    sessionStorage.setItem("bookingStartDate", dateFrom);
+    sessionStorage.setItem("bookingEndDate", dateTo);
+    sessionStorage.setItem("bookingStartTime", timeFrom);
 
     const MAX_DISTANCE = 20;
 
@@ -316,23 +341,20 @@ window.searchSitters = function () {
                 }
             }
 
-            // 📅 DATE AVAILABILITY
-            if (dateFrom && dateTo) {
-                const hasOverlap = allBookings.some(b => {
-                    if (b.fld_penjaga_ID === s.id) {
-                        return isOverlapping(dateFrom, dateTo, b.fld_tempahan_tkhMula, b.fld_tempahan_tkhTamat);
-                    }
-                    return false;
-                });
-                
-                if (hasOverlap) {
-                    return false; // Not available
+            // 📅 DATE & TIME AVAILABILITY
+            const hasOverlap = allBookings.some(b => {
+                if (b.fld_penjaga_ID === s.id) {
+                    return isOverlapping(
+                        dateFrom, timeFrom, dateTo, timeTo, 
+                        b.fld_tempahan_tkhMula, b.fld_tempahan_masaMula, 
+                        b.fld_tempahan_tkhTamat, b.fld_tempahan_masaTamat
+                    );
                 }
-            }
-
-            // 📍 GPS ONLY IF NO FILTER
-            if (state === "" && city === "" && !dateFrom && !dateTo) {
-                return s.distance <= MAX_DISTANCE;
+                return false;
+            });
+            
+            if (hasOverlap) {
+                return false; // Not available
             }
 
             return true;
@@ -341,9 +363,23 @@ window.searchSitters = function () {
     const sortBy = document.getElementById("searchSort").value;
 
     if (sortBy === "price_low") {
-        filtered.sort((a, b) => Number(a.fld_user_kadarBayaran || 0) - Number(b.fld_user_kadarBayaran || 0));
+        filtered.sort((a, b) => {
+            const getPrice = (s) => {
+                if (service === "boarding") return Number(s.fld_rate_boarding || s.fld_user_kadarBayaran || 0);
+                if (service === "grooming") return Number(s.fld_rate_grooming || s.fld_user_kadarBayaran || 0);
+                return Number(s.fld_rate_daycare || s.fld_user_kadarBayaran || 0);
+            };
+            return getPrice(a) - getPrice(b);
+        });
     } else if (sortBy === "price_high") {
-        filtered.sort((a, b) => Number(b.fld_user_kadarBayaran || 0) - Number(a.fld_user_kadarBayaran || 0));
+        filtered.sort((a, b) => {
+            const getPrice = (s) => {
+                if (service === "boarding") return Number(s.fld_rate_boarding || s.fld_user_kadarBayaran || 0);
+                if (service === "grooming") return Number(s.fld_rate_grooming || s.fld_user_kadarBayaran || 0);
+                return Number(s.fld_rate_daycare || s.fld_user_kadarBayaran || 0);
+            };
+            return getPrice(b) - getPrice(a);
+        });
     } else if (sortBy === "rating_high") {
         filtered.sort((a, b) => b.avgRating - a.avgRating);
     } else {
@@ -392,6 +428,20 @@ function display(sitters) {
             servicesList = svcs.map(svc => `<span class="service-tag">${svc.trim()}</span>`).join('');
         }
 
+        const activeService = (document.getElementById("searchService").value || "").toLowerCase();
+        let displayPrice = s.fld_user_kadarBayaran || 0;
+        let displayUnit = "/hr";
+        if (activeService === "boarding") {
+            displayPrice = s.fld_rate_boarding || s.fld_user_kadarBayaran || 0;
+            displayUnit = "/day";
+        } else if (activeService === "grooming") {
+            displayPrice = s.fld_rate_grooming || s.fld_user_kadarBayaran || 0;
+            displayUnit = "/session";
+        } else if (activeService === "daycare") {
+            displayPrice = s.fld_rate_daycare || s.fld_user_kadarBayaran || 0;
+            displayUnit = "/hr";
+        }
+
         html += `
         <div class="sitter-card">
             <div class="sitter-img">
@@ -411,7 +461,7 @@ function display(sitters) {
             </div>
 
             <div class="sitter-action">
-                <div class="sitter-price">RM ${s.fld_user_kadarBayaran || 0}<span>/hr</span></div>
+                <div class="sitter-price">RM ${displayPrice}<span>${displayUnit}</span></div>
                 <a href="detailcatsitter.php?id=${s.id}" class="btn-view">View Profile</a>
             </div>
         </div>
