@@ -283,6 +283,30 @@
         }
         .add-date-btn:hover { background: #ff9aa2; }
 
+        @media (max-width: 768px) {
+            .profile-wrapper {
+                padding: 0 10px;
+                margin: 20px auto;
+            }
+            .form-container {
+                padding: 0 20px;
+            }
+            .input-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+
     </style>
 </head>
 <body>

@@ -180,3 +180,31 @@ input:focus, textarea:focus {
     color: #333;
     transform: translateY(-3px);
 }
+
+/* MOBILE RESPONSIVE STYLING */
+@media (max-width: 768px) {
+    .sitter-hero {
+        padding: 60px 15px 100px;
+    }
+    .sitter-hero h1 {
+        font-size: 30px;
+    }
+    .sitter-hero p {
+        font-size: 16px;
+    }
+    .form-container {
+        margin-top: -60px;
+        margin-bottom: 40px;
+        padding: 0 10px;
+    }
+    .register-card {
+        padding: 30px 20px;
+    }
+    .register-card h2 {
+        font-size: 22px;
+    }
+    .input-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}

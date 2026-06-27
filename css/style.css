@@ -304,3 +304,66 @@ body {
     background-color: #333333; /* Sleek dark grey hover effect */
     transform: translateY(-1px); /* Soft micro-interaction lift */
 }
+
+/* MOBILE RESPONSIVE STYLING */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    .nav-links a {
+        margin: 0 5px;
+        font-size: 14px;
+    }
+    .nav-right {
+        gap: 10px;
+    }
+    .hero {
+        height: auto;
+        padding: 80px 20px;
+    }
+    .hero h1 {
+        font-size: 32px;
+    }
+    .hero p {
+        font-size: 15px;
+    }
+    .services {
+        padding: 40px 15px;
+    }
+    .services h1 {
+        font-size: 30px;
+    }
+    .service-grid {
+        gap: 20px;
+    }
+    .service-card {
+        width: 100%;
+        max-width: 350px;
+    }
+    .how-it-works {
+        padding: 60px 15px;
+    }
+    .section-title {
+        font-size: 28px;
+        margin-bottom: 30px;
+    }
+    .step-card {
+        width: 100%;
+        max-width: 320px;
+    }
+    .testimonials {
+        padding: 40px 15px;
+    }
+    .testimonial-card {
+        padding: 15px;
+    }
+}
