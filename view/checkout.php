@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - WhiskerShop</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/shopstyle.css">
@@ -15,6 +16,14 @@
         .btn-confirm { background: #000; color: white; border: none; padding: 15px; width: 100%; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 20px;}
         .btn-confirm:hover { background: #333; }
         .summary-item { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        
+        @media (max-width: 768px) {
+            .checkout-container {
+                flex-direction: column;
+                margin: 20px;
+                gap: 20px;
+            }
+        }
     </style>
 </head>
 <body>
