@@ -14,8 +14,8 @@ $customer_email = $_GET['email'] ?? '';
 $type = $_GET['type'] ?? 'booking'; // 'booking' or 'shop'
 
 $product_name = $type === 'shop' ? "WhiskerShop Order #$booking_id" : "WhiskerHub Booking #$booking_id";
-$success_url = $type === 'shop' ? "https://168.144.99.134/view/success_shop.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}&type=stripe" : "https://168.144.99.134/view/success.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}";
-$cancel_url = $type === 'shop' ? "https://168.144.99.134/view/myorders.php" : "https://168.144.99.134/view/booking.php";
+$success_url = $type === 'shop' ? "https://whiskerhub.tech/view/success_shop.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}&type=stripe" : "https://whiskerhub.tech/view/success.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}";
+$cancel_url = $type === 'shop' ? "https://whiskerhub.tech/view/myorders.php" : "https://whiskerhub.tech/view/booking.php";
 
 try {
     $session = \Stripe\Checkout\Session::create([
