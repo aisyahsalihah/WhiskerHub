@@ -14,8 +14,13 @@ $customer_email = $_GET['email'] ?? '';
 $type = $_GET['type'] ?? 'booking'; // 'booking' or 'shop'
 
 $product_name = $type === 'shop' ? "WhiskerShop Order #$booking_id" : "WhiskerHub Booking #$booking_id";
-$success_url = $type === 'shop' ? "https://whiskerhub.tech/view/success_shop.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}&type=stripe" : "https://whiskerhub.tech/view/success.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}";
-$cancel_url = $type === 'shop' ? "https://whiskerhub.tech/view/myorders.php" : "https://whiskerhub.tech/view/booking.php";
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'];
+$current_dir = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+$base_url = $protocol . $host . $current_dir . "/";
+
+$success_url = $type === 'shop' ? $base_url . "success_shop.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}&type=stripe" : $base_url . "success.php?booking_id=$booking_id&email=$customer_email&session_id={CHECKOUT_SESSION_ID}";
+$cancel_url = $type === 'shop' ? $base_url . "myorders.php" : $base_url . "booking.php";
 
 try {
     $session = \Stripe\Checkout\Session::create([
