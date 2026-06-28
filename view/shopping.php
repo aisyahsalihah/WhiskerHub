@@ -68,9 +68,9 @@ let allProducts = [];
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         try {
-            let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+            let userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
             if (!userSnap.exists()) {
-                userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+                userSnap = await getDoc(doc(db, "pengguna", user.uid));
             }
             if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
                 const salesLink = document.getElementById("mySalesLink");
@@ -158,9 +158,9 @@ window.openModal = async function(id, title, price, desc, img, sellerId) {
 
     if (sellerId && sellerId !== 'unknown') {
         try {
-            let sellerSnap = await getDoc(doc(db, "pengguna", sellerId));
+            let sellerSnap = await getDoc(doc(db, "penjaga_kucing", sellerId));
             if (!sellerSnap.exists()) {
-                sellerSnap = await getDoc(doc(db, "penjaga_kucing", sellerId));
+                sellerSnap = await getDoc(doc(db, "pengguna", sellerId));
             }
             if (sellerSnap.exists()) {
                 const data = sellerSnap.data();

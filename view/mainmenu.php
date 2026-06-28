@@ -17,6 +17,7 @@
         <a href="findcatsitter.php">Search Sitters</a>
         <a href="becomesitter.php" id="becomeSitterLink" style="display:none">Become a Sitter</a>
         <a href="shopping.php">Shopping</a>
+        <a href="mysales.php" id="mySalesLink" style="display:none">My Sales</a>
     </div>
 
     <div class="nav-right" id="navRight">
@@ -199,6 +200,20 @@ onAuthStateChanged(auth, async (user) => {
         const sitterSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
         const link = document.getElementById("becomeSitterLink");
         if (link) link.style.display = sitterSnap.exists() ? "none" : "";
+
+        // Show/hide "My Sales" based on seller status
+        try {
+            let userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+            if (!userSnap.exists()) {
+                userSnap = await getDoc(doc(db, "pengguna", user.uid));
+            }
+            if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+                const salesLink = document.getElementById("mySalesLink");
+                if (salesLink) salesLink.style.display = "";
+            }
+        } catch (e) {
+            console.error("Error checking seller status:", e);
+        }
 
         // 1. Paparkan butang untuk user yang sudah login
         navRight.innerHTML = `

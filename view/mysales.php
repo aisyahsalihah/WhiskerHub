@@ -109,11 +109,11 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     try {
-        let userSnap = await getDoc(doc(db, "pengguna", user.uid));
-        let currentCollection = "pengguna";
+        let userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+        let currentCollection = "penjaga_kucing";
         if (!userSnap.exists()) {
-            userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
-            currentCollection = "penjaga_kucing";
+            userSnap = await getDoc(doc(db, "pengguna", user.uid));
+            currentCollection = "pengguna";
         }
 
         if (userSnap.exists() && userSnap.data().fld_is_seller === true) {

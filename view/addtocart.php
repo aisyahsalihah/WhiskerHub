@@ -44,9 +44,9 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         // Check if user is seller to show My Sales Link
         try {
-            let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+            let userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
             if (!userSnap.exists()) {
-                userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+                userSnap = await getDoc(doc(db, "pengguna", user.uid));
             }
             if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
                 const salesLink = document.getElementById("mySalesLink");
