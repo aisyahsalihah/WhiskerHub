@@ -16,10 +16,10 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php" class="active">Shopping</a>
         <a href="myorders.php">My Orders</a>
-        <a href="mysales.php">My Sales</a>
+        <a href="mysales.php" id="mySalesLink" style="display:none;">My Sales</a>
         <a href="addtocart.php">Troli 🛒</a>
     </div>
-    <a href="addproduct.php" class="btn-add-float">+</a>
+    <a href="addproduct.php" id="addProductFloat" class="btn-add-float" style="display:none;">+</a>
 </div>
 
 <section class="search-container">
@@ -44,6 +44,7 @@
             <img id="modalImg" src="" alt="Product">
             <div class="modal-text">
                 <h2 id="modalTitle"></h2>
+                <p style="font-size: 13px; color: #888; margin-top: -10px; margin-bottom: 15px;">Kedai: <strong id="modalSellerName" style="color: #333;">Loading...</strong></p>
                 <p id="modalPrice" class="modal-price"></p>
                 <p id="modalDesc"></p>
                 
@@ -58,10 +59,30 @@
 
 <script type="module">
 import { auth, db } from "../js/firebase.js";
-import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const productGrid = document.getElementById('productGrid');
 let allProducts = [];
+
+// Check if user is registered seller to show My Sales / Add Product button
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        try {
+            let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+            if (!userSnap.exists()) {
+                userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+            }
+            if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+                const salesLink = document.getElementById("mySalesLink");
+                if (salesLink) salesLink.style.display = "";
+                const floatBtn = document.getElementById("addProductFloat");
+                if (floatBtn) floatBtn.style.display = "flex";
+            }
+        } catch (error) {
+            console.error("Error checking seller status:", error);
+        }
+    }
+});
 
 // 1. LOAD PRODUK DARI FIRESTORE
 async function loadProducts() {
@@ -123,7 +144,7 @@ document.getElementById('searchInput').addEventListener('keyup', function(e) {
     }
 });
 // 2. FUNGSI MODAL
-window.openModal = function(id, title, price, desc, img, sellerId) {
+window.openModal = async function(id, title, price, desc, img, sellerId) {
     document.getElementById('modalProdId').value = id;
     document.getElementById('modalSellerId').value = sellerId || 'unknown';
     document.getElementById('modalTitle').innerText = title;
@@ -131,6 +152,29 @@ window.openModal = function(id, title, price, desc, img, sellerId) {
     document.getElementById('modalDesc').innerText = desc;
     document.getElementById('modalImg').src = img || 'https://via.placeholder.com/400';
     document.getElementById('productModal').style.display = "block";
+
+    const sellerNameEl = document.getElementById('modalSellerName');
+    if (sellerNameEl) sellerNameEl.innerText = "Loading...";
+
+    if (sellerId && sellerId !== 'unknown') {
+        try {
+            let sellerSnap = await getDoc(doc(db, "pengguna", sellerId));
+            if (!sellerSnap.exists()) {
+                sellerSnap = await getDoc(doc(db, "penjaga_kucing", sellerId));
+            }
+            if (sellerSnap.exists()) {
+                const data = sellerSnap.data();
+                sellerNameEl.innerText = data.fld_shop_name || data.fld_user_name || data.fld_user_fullname || "WhiskerHub Seller";
+            } else {
+                sellerNameEl.innerText = "WhiskerHub Seller";
+            }
+        } catch (e) {
+            console.error("Error loading seller details:", e);
+            sellerNameEl.innerText = "WhiskerHub Seller";
+        }
+    } else {
+        sellerNameEl.innerText = "WhiskerHub Seller";
+    }
 }
 
 window.closeModal = function() {

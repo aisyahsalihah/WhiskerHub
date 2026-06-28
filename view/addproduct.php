@@ -15,7 +15,7 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php">Shopping</a>
         <a href="myorders.php">My Orders</a>
-        <a href="mysales.php">My Sales</a>
+        <a href="mysales.php" class="active">My Sales</a>
     </div>
 </div>
 
@@ -58,13 +58,35 @@
 </div>
 
 <script type="module">
-import { db, storage } from "../js/firebase.js";
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, storage, auth } from "../js/firebase.js";
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 const addProductForm = document.getElementById('addProductForm');
 const submitBtn = document.getElementById('submitBtn');
-import { auth } from "../js/firebase.js";
+
+auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+        window.location.href = "signin.php";
+        return;
+    }
+
+    try {
+        let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+        if (!userSnap.exists()) {
+            userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+        }
+        if (!userSnap.exists() || userSnap.data().fld_is_seller !== true) {
+            alert("Akses Dihalang: Anda perlu mendaftar kedai jualan anda terlebih dahulu.");
+            window.location.href = "mysales.php";
+            return;
+        }
+    } catch (err) {
+        console.error("Error validating seller status:", err);
+        window.location.href = "shopping.php";
+        return;
+    }
+});
 
 addProductForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -104,7 +126,7 @@ addProductForm.addEventListener('submit', async (e) => {
         await addDoc(collection(db, "produk"), productData);
 
         alert("Product added successfully! 🐾");
-        window.location.href = "shopping.php";
+        window.location.href = "mysales.php";
 
     } catch (error) {
         console.error("Error adding product: ", error);

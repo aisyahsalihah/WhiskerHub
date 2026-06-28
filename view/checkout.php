@@ -34,7 +34,7 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php">Shopping</a>
         <a href="myorders.php">My Orders</a>
-        <a href="mysales.php">My Sales</a>
+        <a href="mysales.php" id="mySalesLink" style="display:none;">My Sales</a>
         <a href="addtocart.php">Cart 🛒</a>
     </div>
 </div>
@@ -88,12 +88,27 @@ const checkoutForm = document.getElementById('checkoutForm');
 const btnConfirm = document.getElementById('btnConfirm');
 
 let orderItems = [];
+
 let orderTotal = 0;
 
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
         window.location.href = "signin.php";
         return;
+    }
+
+    // Check if user is seller to show My Sales Link
+    try {
+        let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+        if (!userSnap.exists()) {
+            userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+        }
+        if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+            const salesLink = document.getElementById("mySalesLink");
+            if (salesLink) salesLink.style.display = "";
+        }
+    } catch (e) {
+        console.error("Error checking seller status:", e);
     }
     
     if (cartIds.length === 0) {

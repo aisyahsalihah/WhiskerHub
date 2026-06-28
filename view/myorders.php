@@ -26,7 +26,7 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php">Shopping</a>
         <a href="myorders.php" class="active">My Orders</a>
-        <a href="mysales.php">My Sales</a>
+        <a href="mysales.php" id="mySalesLink" style="display:none;">My Sales</a>
     </div>
 </div>
 
@@ -39,7 +39,7 @@
 
 <script type="module">
 import { auth, db } from "../js/firebase.js";
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const ordersList = document.getElementById('ordersList');
 
@@ -47,6 +47,20 @@ auth.onAuthStateChanged(async (user) => {
     if (!user) {
         window.location.href = "signin.php";
         return;
+    }
+
+    // Check if user is seller to show My Sales Link
+    try {
+        let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+        if (!userSnap.exists()) {
+            userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+        }
+        if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+            const salesLink = document.getElementById("mySalesLink");
+            if (salesLink) salesLink.style.display = "";
+        }
+    } catch (e) {
+        console.error("Error checking seller status:", e);
     }
 
     try {

@@ -33,12 +33,14 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php">Shop</a>
         <a href="mysales.php" class="active">My Sales</a>
-        <a href="addproduct.php">Add Product</a>
     </div>
 </div>
 
-<div class="admin-container">
-    <h1 style="font-family: 'Playfair Display', serif; margin-bottom: 30px;">Seller Dashboard - My Sales</h1>
+<div class="admin-container" id="sellerDashboard" style="display:none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="font-family: 'Playfair Display', serif; margin: 0;">Seller Dashboard - My Sales</h1>
+        <a href="addproduct.php" style="padding: 10px 20px; font-size: 14px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 8px; font-weight: bold; transition: 0.3s;" onmouseover="this.style.background='#ff9aa2'" onmouseout="this.style.background='#ffb6c1'">+ Add New Product</a>
+    </div>
     <table class="order-table">
         <thead>
             <tr>
@@ -54,6 +56,21 @@
             <tr><td colspan="6" style="text-align: center;">Loading your sales...</td></tr>
         </tbody>
     </table>
+</div>
+
+<!-- Seller Registration Form (Hidden by default) -->
+<div class="admin-container" id="sellerRegisterContainer" style="display:none;">
+    <div style="max-width: 500px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;">
+        <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 10px; color: #333;">Mula Menjual di WhiskerShop! 🐱</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Daftar kedai anda sekarang untuk mula menyenaraikan produk kucing anda dan menerima pesanan daripada pembeli.</p>
+        
+        <div class="form-group" style="text-align: left; margin-bottom: 20px;">
+            <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 8px;">Nama Kedai (Shop Name)</label>
+            <input type="text" id="regShopName" placeholder="Contoh: Kedai Kucing Comel" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+        </div>
+        
+        <button id="btnRegisterSeller" style="width: 100%; padding: 14px; background: #ffb6c1; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ff9aa2'" onmouseout="this.style.background='#ffb6c1'">DAFTAR SEBAGAI PENJUAL</button>
+    </div>
 </div>
 
 <!-- Shipping Modal -->
@@ -80,7 +97,7 @@
 
 <script type="module">
 import { auth, db, storage } from "../js/firebase.js";
-import { collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 const adminOrderList = document.getElementById('adminOrderList');
@@ -88,6 +105,49 @@ const adminOrderList = document.getElementById('adminOrderList');
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
         window.location.href = "signin.php";
+        return;
+    }
+
+    try {
+        let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+        let currentCollection = "pengguna";
+        if (!userSnap.exists()) {
+            userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+            currentCollection = "penjaga_kucing";
+        }
+
+        if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+            document.getElementById('sellerDashboard').style.display = 'block';
+        } else {
+            document.getElementById('sellerRegisterContainer').style.display = 'block';
+            document.getElementById('btnRegisterSeller').onclick = async () => {
+                const shopName = document.getElementById('regShopName').value.trim();
+                if (!shopName) {
+                    alert("Sila masukkan nama kedai anda!");
+                    return;
+                }
+                try {
+                    document.getElementById('btnRegisterSeller').disabled = true;
+                    document.getElementById('btnRegisterSeller').innerText = "Mendaftarkan...";
+                    
+                    await updateDoc(doc(db, currentCollection, user.uid), {
+                        fld_is_seller: true,
+                        fld_shop_name: shopName
+                    });
+                    
+                    alert("Pendaftaran Kedai Berjaya! Anda kini boleh mula menjual. 🎉");
+                    location.reload();
+                } catch (e) {
+                    console.error("Error registering seller:", e);
+                    alert("Gagal mendaftar kedai. Sila cuba lagi.");
+                    document.getElementById('btnRegisterSeller').disabled = false;
+                    document.getElementById('btnRegisterSeller').innerText = "DAFTAR SEBAGAI PENJUAL";
+                }
+            };
+            return;
+        }
+    } catch (err) {
+        console.error("Error validating seller status:", err);
         return;
     }
 
