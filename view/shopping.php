@@ -16,10 +16,9 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php" class="active">Shopping</a>
         <a href="myorders.php">My Orders</a>
-        <a href="mysales.php" id="mySalesLink" style="display:none;">My Sales</a>
+        <a href="mysales.php">My Sales</a>
         <a href="addtocart.php">Troli 🛒</a>
     </div>
-    <a href="addproduct.php" id="addProductFloat" class="btn-add-float" style="display:none;">+</a>
 </div>
 
 <section class="search-container">
@@ -63,26 +62,6 @@ import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp } from "https
 
 const productGrid = document.getElementById('productGrid');
 let allProducts = [];
-
-// Check if user is registered seller to show My Sales / Add Product button
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        try {
-            let userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
-            if (!userSnap.exists()) {
-                userSnap = await getDoc(doc(db, "pengguna", user.uid));
-            }
-            if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
-                const salesLink = document.getElementById("mySalesLink");
-                if (salesLink) salesLink.style.display = "";
-                const floatBtn = document.getElementById("addProductFloat");
-                if (floatBtn) floatBtn.style.display = "flex";
-            }
-        } catch (error) {
-            console.error("Error checking seller status:", error);
-        }
-    }
-});
 
 // 1. LOAD PRODUK DARI FIRESTORE
 async function loadProducts() {
