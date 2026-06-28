@@ -42,6 +42,7 @@ try {
     $mail->Password   = SMTP_PASS; 
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port       = 587;
+    $mail->Timeout    = 5; // 5 seconds timeout to prevent hanging if SMTP port is blocked on host
 
     $mail->setFrom('no-reply@whiskerhub.com', 'WhiskerShop');
     $mail->addAddress($customer_email); 

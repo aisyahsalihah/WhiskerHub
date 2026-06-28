@@ -31,7 +31,6 @@ $email_status = "";
 
 if ($booking_id !== 'unknown' && !empty($customer_email)) {
     try {
-        // Server Settings
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
@@ -39,6 +38,7 @@ if ($booking_id !== 'unknown' && !empty($customer_email)) {
         $mail->Password   = SMTP_PASS; 
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
+        $mail->Timeout    = 5; // 5 seconds timeout to prevent hanging if SMTP port is blocked on host
 
         // Recipient
         $mail->setFrom('no-reply@whiskerhub.com', 'WhiskerHub System');
