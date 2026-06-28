@@ -316,7 +316,7 @@ window.searchSitters = function () {
 
                 let services = s.fld_user_jenisPerkhidmatan;
 
-                // kalau string → convert to array
+                // if string → convert to array
                 if (typeof services === "string") {
                     services = services.split(",");
                 }

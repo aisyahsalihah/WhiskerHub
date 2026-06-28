@@ -17,7 +17,7 @@
         <a href="shopping.php" class="active">Shopping</a>
         <a href="myorders.php">My Orders</a>
         <a href="mysales.php">My Sales</a>
-        <a href="addtocart.php">Troli 🛒</a>
+        <a href="addtocart.php">Cart 🛒</a>
     </div>
 </div>
 
@@ -43,7 +43,7 @@
             <img id="modalImg" src="" alt="Product">
             <div class="modal-text">
                 <h2 id="modalTitle"></h2>
-                <p style="font-size: 13px; color: #888; margin-top: -10px; margin-bottom: 15px;">Kedai: <strong id="modalSellerName" style="color: #333;">Loading...</strong></p>
+                <p style="font-size: 13px; color: #888; margin-top: -10px; margin-bottom: 15px;">Shop: <strong id="modalSellerName" style="color: #333;">Loading...</strong></p>
                 <p id="modalPrice" class="modal-price"></p>
                 <p id="modalDesc"></p>
                 
@@ -86,7 +86,7 @@ function displayProducts(products) {
     productGrid.innerHTML = ""; 
 
     if (products.length === 0) {
-        productGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center;'>Tiada produk dijumpai.</p>";
+        productGrid.innerHTML = "<p style='grid-column: 1/-1; text-align: center;'>No products found.</p>";
         return;
     }
 
@@ -181,11 +181,11 @@ window.addToCart = async function() {
 
     try {
         await addDoc(collection(db, "troli"), cartData);
-        alert("Berjaya ditambah ke troli! 🐈");
+        alert("Successfully added to cart! 🐈");
         closeModal();
     } catch (error) {
         console.error("Error adding to cart:", error);
-        alert("Gagal menambah ke troli.");
+        alert("Failed to add to cart.");
     }
 };
 

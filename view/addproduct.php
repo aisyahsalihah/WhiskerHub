@@ -77,7 +77,7 @@ auth.onAuthStateChanged(async (user) => {
             userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
         }
         if (!userSnap.exists() || userSnap.data().fld_is_seller !== true) {
-            alert("Akses Dihalang: Anda perlu mendaftar kedai jualan anda terlebih dahulu.");
+            alert("Access Denied: You need to register your shop first.");
             window.location.href = "mysales.php";
             return;
         }
@@ -102,17 +102,17 @@ addProductForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Tukar status button biar user tak tekan banyak kali
+    // Disable button to prevent multiple submissions
     submitBtn.disabled = true;
     submitBtn.innerText = "Uploading...";
 
     try {
-        // 1. Upload Gambar ke Firebase Storage
+        // 1. Upload Image to Firebase Storage
         const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
         const snapshot = await uploadBytes(storageRef, imageFile);
         const downloadURL = await getDownloadURL(snapshot.ref);
 
-        // 2. Simpan Data ke Firestore (Koleksi: produk)
+        // 2. Save Data to Firestore (Collection: produk)
         const productData = {
             fld_prod_name: name,
             fld_prod_price: parseFloat(price),

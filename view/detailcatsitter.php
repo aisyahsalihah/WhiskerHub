@@ -210,7 +210,7 @@ async function loadSitter(){
     if (data.fld_rate_daycare && Number(data.fld_rate_daycare) > 0) priceText += `Daycare: RM ${data.fld_rate_daycare}/hour | `;
     if (data.fld_rate_grooming && Number(data.fld_rate_grooming) > 0) priceText += `Grooming: RM ${data.fld_rate_grooming}/session`;
     if (priceText.endsWith(" | ")) priceText = priceText.slice(0, -3);
-    if (!priceText) priceText = "RM " + (data.fld_user_kadarBayaran || "0") + "/jam";
+    if (!priceText) priceText = "RM " + (data.fld_user_kadarBayaran || "0") + "/hour";
     document.getElementById("sitterPrice").innerText = priceText;
 
     document.getElementById("sitterBio").innerText =
@@ -264,8 +264,8 @@ console.log("SITTER ID:", id); // 🔥 CHECK 1
 async function loadReviews() {
 
     const q = query(
-        collection(db, "review"),   // ✔ ikut Firebase kau
-        where("sitterID", "==", id) // ✔ ikut field kau
+        collection(db, "review"),   // ✔ matches your Firebase
+        where("sitterID", "==", id) // ✔ matches your field
     );
 
     const snap = await getDocs(q);

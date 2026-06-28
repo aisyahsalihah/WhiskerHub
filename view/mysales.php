@@ -61,15 +61,15 @@
 <!-- Seller Registration Form (Hidden by default) -->
 <div class="admin-container" id="sellerRegisterContainer" style="display:none;">
     <div style="max-width: 500px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;">
-        <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 10px; color: #333;">Mula Menjual di WhiskerShop! 🐱</h2>
-        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Daftar kedai anda sekarang untuk mula menyenaraikan produk kucing anda dan menerima pesanan daripada pembeli.</p>
+        <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 10px; color: #333;">Start Selling on WhiskerShop! 🐱</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Register your shop now to start listing your cat products and receiving orders from buyers.</p>
         
         <div class="form-group" style="text-align: left; margin-bottom: 20px;">
-            <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 8px;">Nama Kedai (Shop Name)</label>
-            <input type="text" id="regShopName" placeholder="Contoh: Kedai Kucing Comel" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+            <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 8px;">Shop Name</label>
+            <input type="text" id="regShopName" placeholder="Example: Happy Cat Petshop" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
         </div>
         
-        <button id="btnRegisterSeller" style="width: 100%; padding: 14px; background: #ffb6c1; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ff9aa2'" onmouseout="this.style.background='#ffb6c1'">DAFTAR SEBAGAI PENJUAL</button>
+        <button id="btnRegisterSeller" style="width: 100%; padding: 14px; background: #ffb6c1; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ff9aa2'" onmouseout="this.style.background='#ffb6c1'">REGISTER AS SELLER</button>
     </div>
 </div>
 
@@ -123,25 +123,25 @@ auth.onAuthStateChanged(async (user) => {
             document.getElementById('btnRegisterSeller').onclick = async () => {
                 const shopName = document.getElementById('regShopName').value.trim();
                 if (!shopName) {
-                    alert("Sila masukkan nama kedai anda!");
+                    alert("Please enter your shop name!");
                     return;
                 }
                 try {
                     document.getElementById('btnRegisterSeller').disabled = true;
-                    document.getElementById('btnRegisterSeller').innerText = "Mendaftarkan...";
+                    document.getElementById('btnRegisterSeller').innerText = "Registering...";
                     
                     await updateDoc(doc(db, currentCollection, user.uid), {
                         fld_is_seller: true,
                         fld_shop_name: shopName
                     });
                     
-                    alert("Pendaftaran Kedai Berjaya! Anda kini boleh mula menjual. 🎉");
+                    alert("Shop registration successful! You can now start selling. 🎉");
                     location.reload();
                 } catch (e) {
                     console.error("Error registering seller:", e);
-                    alert("Gagal mendaftar kedai. Sila cuba lagi.");
+                    alert("Failed to register shop. Please try again.");
                     document.getElementById('btnRegisterSeller').disabled = false;
-                    document.getElementById('btnRegisterSeller').innerText = "DAFTAR SEBAGAI PENJUAL";
+                    document.getElementById('btnRegisterSeller').innerText = "REGISTER AS SELLER";
                 }
             };
             return;

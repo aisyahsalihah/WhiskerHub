@@ -254,7 +254,7 @@ function calculateTotal() {
     return 0;
 }
 
-// Listeners untuk auto-update harga
+// Listeners for price auto-updates
 ['start_date', 'end_date', 'start_time', 'hours_per_day', 'cat_count'].forEach(id => {
     document.getElementById(id).addEventListener('input', calculateTotal);
 });
@@ -262,21 +262,21 @@ function calculateTotal() {
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         try {
-            // A. DATA PEMILIK - Guna fld_user_fullname ikut User Summary
+            // A. OWNER DATA - Use fld_user_fullname matching User Summary
             const userDoc = await getDoc(doc(db, "pengguna", user.uid));
             if (userDoc.exists()) {
                 document.getElementById('customer_name').value = userDoc.data().fld_user_name || "";
                 document.getElementById('phone').value = userDoc.data().fld_user_phone || "";
             }
 
-            // B. DATA PENJAGA
+            // B. SITTER DATA
             if (sitterId) {
                 const sitterDoc = await getDoc(doc(db, "penjaga_kucing", sitterId));
                 if (sitterDoc.exists()) {
                     const sData = sitterDoc.data();
                     document.getElementById('sitter_name').value = sData.fld_user_fullname || "";
                     document.getElementById('fld_penjaga_ID').value = sitterId;
-                    // Ambil lokasi (Bandar & Negeri)
+                    // Get location (City & State)
                     const bandar = sData.fld_user_bandar || "";
                     const negeri = sData.fld_user_negeri || "";
                     document.getElementById('location').value = bandar && negeri ? `${bandar}, ${negeri}` : bandar || negeri || "-";
@@ -312,7 +312,7 @@ auth.onAuthStateChanged(async (user) => {
     } else { window.location.assign("signin.php"); }
 });
 
-// C. SIMPAN KE FIRESTORE
+// C. SAVE TO FIRESTORE
 document.getElementById('bookingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const finalTotal = calculateTotal();
@@ -347,16 +347,16 @@ document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         fld_tempahan_jamSehari: document.getElementById('hours_per_day').value,
         fld_tempahan_bilKucing: document.getElementById('cat_count').value,
         fld_tempahan_jumlah: finalTotal,
-        fld_tempahan_status: "Unpaid", // Tukar status awal
+        fld_tempahan_status: "Unpaid", // Initial status
         fld_tempahan_masaDibuat: serverTimestamp(),
         fld_unread_by: [document.getElementById('fld_penjaga_ID').value]
     };
 
     try {
         const docRef = await addDoc(collection(db, "tempahan"), bookingData);
-       // Ambil e-mel user yang sedang aktif
+       // Get active user email
         const userEmail = auth.currentUser.email; 
-        // Masa redirect ke payment.php, hantar sekali e-mel
+        // Redirect to payment.php, passing the email
         window.location.href = `payment.php?booking_id=${docRef.id}&amount=${finalTotal}&email=${userEmail}`;
     } catch (error) { 
         alert("Error: " + error.message); 

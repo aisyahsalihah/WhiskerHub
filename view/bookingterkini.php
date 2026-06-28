@@ -130,7 +130,7 @@ auth.onAuthStateChanged(async (user) => {
         return;
     }
 
-    // --- 1. UPDATE NAVBAR (Sama seperti History) ---
+    // --- 1. UPDATE NAVBAR (Same as History) ---
     navRight.innerHTML = `
         <a href="message.php" class="circle-btn" style="position:relative;">
             <img src="../photos/history.jpg" alt="History">
@@ -531,7 +531,7 @@ window.openChat = async (sitterId) => {
     // create unique chat id
     const chatId = [user.uid, sitterId].sort().join("_");
 
-    // direct pergi message page
+    // direct to message page
     window.location.href = `message.php?chatId=${chatId}&receiver=${sitterId}`;
 };
 

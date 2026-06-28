@@ -161,7 +161,7 @@ document.getElementById("sitterForm").addEventListener("submit", async (e) => {
         return;
     }
 
-    // ambil services
+    // get services
     let services = [];
     document.querySelectorAll(".service:checked").forEach(cb => {
         services.push(cb.value);
@@ -178,7 +178,7 @@ document.getElementById("sitterForm").addEventListener("submit", async (e) => {
             const avatarUrl = cachedUserData ? (cachedUserData.fld_user_avatar || cachedUserData.fld_user_profilePic || "") : "";
             const bioText = cachedUserData ? (cachedUserData.fld_user_desc || "") : "";
 
-            // ✅ SAVE SITTER (guna UID sebagai doc ID)
+            // ✅ SAVE SITTER (use UID as doc ID)
             await setDoc(doc(db, "penjaga_kucing", user.uid), {
 
                 fld_user_ID: user.uid,
@@ -207,7 +207,7 @@ document.getElementById("sitterForm").addEventListener("submit", async (e) => {
 
             });
 
-            alert("Berjaya daftar sebagai sitter!");
+            alert("Successfully registered as a sitter!");
             window.location.href = "profile.php";
 
         }, (err) => {

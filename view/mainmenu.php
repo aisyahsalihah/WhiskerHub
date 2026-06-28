@@ -245,9 +245,9 @@ onAuthStateChanged(auth, async (user) => {
             });
         });
 
-        // 2. DAFTAR EVENT LISTENER DI SINI (Selepas innerHTML dimasukkan)
+        // 2. REGISTER EVENT LISTENER HERE (After innerHTML is inserted)
         document.getElementById("logoutBtn").addEventListener("click", async (e) => {
-            e.preventDefault(); // Elakkan page scroll ke atas bila tekan #
+            e.preventDefault(); // Prevent page from scrolling to top when clicking #
             try {
                 await signOut(auth);
                 alert("Logout successful!");
@@ -258,7 +258,7 @@ onAuthStateChanged(auth, async (user) => {
         });
 
     } else {
-        // 3. Paparkan butang Sign Up / Login jika belum login
+        // 3. Display Sign Up / Login buttons if not logged in
         navRight.innerHTML = `
             <a href="signup.php">Sign Up</a>
             <a href="login.php">Log In</a>

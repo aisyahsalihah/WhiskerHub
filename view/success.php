@@ -267,18 +267,18 @@ auth.onAuthStateChanged(async (user) => {
                 }
 
                 // 4. INITIALIZE AUTOMATIC CHAT ROOM INSIDE message.php LIST
-                // Cipta unique chat room ID gabungan user ID dan sitter ID
+                // Create unique chat room ID combining user ID and sitter ID
                 const chatRoomId = `${userId}_${sitterId}`;
 
-                // Susun array participants mengikut keperluan query message.php
+                // Arrange participants array according to message.php query requirements
                 const chatRoomData = {
                     fld_chat_room_id: chatRoomId,
                     fld_pemilik_ID: userId,
                     fld_penjaga_ID: sitterId,
-                    participants: [userId, sitterId], // PENTING: Sila pastikan field ini wujud untuk query "array-contains"
-                    lastMessage: "Booking confirmed and settled! Let's talk about the cat care details. 🐾", // Tukar fld_last_message ke lastMessage ikut kod message.php
-                    lastMessageTime: serverTimestamp(), // Tukar fld_last_updated ke lastMessageTime
-                    lastSenderId: sitterId, // Letak sitter sebagai last sender supaya dot merah unread menyala di akaun owner (user)
+                    participants: [userId, sitterId], // IMPORTANT: Ensure this field exists for "array-contains" query
+                    lastMessage: "Booking confirmed and settled! Let's talk about the cat care details. 🐾", // Change fld_last_message to lastMessage matching message.php code
+                    lastMessageTime: serverTimestamp(), // Change fld_last_updated to lastMessageTime
+                    lastSenderId: sitterId, // Put sitter as last sender so unread red dot displays on owner (user) account
                     isRead: false
                 };
 
