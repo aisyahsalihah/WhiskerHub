@@ -17,7 +17,6 @@
         <a href="findcatsitter.php">Search Sitters</a>
         <a href="becomesitter.php" id="becomeSitterLink" style="display:none">Become a Sitter</a>
         <a href="shopping.php">Shopping</a>
-        <a href="mysales.php">My Sales</a>
     </div>
 
     <div class="nav-right" id="navRight">
