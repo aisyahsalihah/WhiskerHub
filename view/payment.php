@@ -14,8 +14,19 @@ $customer_email = $_GET['email'] ?? '';
 $type = $_GET['type'] ?? 'booking'; // 'booking' or 'shop'
 
 $product_name = $type === 'shop' ? "WhiskerShop Order #$booking_id" : "WhiskerHub Booking #$booking_id";
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$protocol = "http://";
+if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
+    $_SERVER['SERVER_PORT'] == 443 || 
+    (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')) {
+    $protocol = "https://";
+}
+
 $host = $_SERVER['HTTP_HOST'];
+if ($protocol === "http://") {
+    if ($host === '127.0.0.1' || strpos($host, '127.0.0.1:') === 0) {
+        $host = str_replace('127.0.0.1', 'localhost', $host);
+    }
+}
 $current_dir = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
 $base_url = $protocol . $host . $current_dir . "/";
 
