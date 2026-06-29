@@ -51,6 +51,7 @@
                 <input type="hidden" id="modalSellerId">
                 
                 <button class="btn-add-cart" onclick="addToCart()">Add to Cart 🛒</button>
+                <button class="btn-add-cart" id="btnChatSeller" style="background: #ffb6c1; color: #333; margin-top: 10px;" onclick="chatWithSeller()">Chat Seller 💬</button>
             </div>
         </div>
     </div>
@@ -58,7 +59,7 @@
 
 <script type="module">
 import { auth, db } from "../js/firebase.js";
-import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const productGrid = document.getElementById('productGrid');
 let allProducts = [];
@@ -212,6 +213,47 @@ auth.onAuthStateChanged(async (user) => {
         }
     }
 });
+
+window.chatWithSeller = async function() {
+    const user = auth.currentUser;
+    if (!user) {
+        alert("Please login first!");
+        window.location.href = "login.php";
+        return;
+    }
+
+    const sellerId = document.getElementById('modalSellerId').value;
+    if (!sellerId || sellerId === 'unknown') {
+        alert("Seller details not found.");
+        return;
+    }
+
+    if (sellerId === user.uid) {
+        alert("You cannot chat with yourself (you are the seller of this product).");
+        return;
+    }
+
+    const chatRoomId = `${user.uid}_${sellerId}`;
+
+    try {
+        const chatRoomData = {
+            fld_chat_room_id: chatRoomId,
+            fld_pemilik_ID: user.uid,
+            fld_penjaga_ID: sellerId,
+            participants: [user.uid, sellerId],
+            lastMessage: "Hi! I am interested in your product. 🐾",
+            lastMessageTime: serverTimestamp(),
+            lastSenderId: user.uid,
+            isRead: false
+        };
+
+        await setDoc(doc(db, "chats", chatRoomId), chatRoomData, { merge: true });
+        window.location.href = `message.php?chatId=${chatRoomId}`;
+    } catch(err) {
+        console.error("Error starting chat with seller:", err);
+        alert("Failed to start chat with seller.");
+    }
+};
 
 // Jalankan load data
 loadProducts();

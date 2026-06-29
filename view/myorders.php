@@ -39,7 +39,7 @@
 
 <script type="module">
 import { auth, db } from "../js/firebase.js";
-import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const ordersList = document.getElementById('ordersList');
 
@@ -119,7 +119,8 @@ auth.onAuthStateChanged(async (user) => {
                     <div class="order-items">
                         ${itemsHTML}
                     </div>
-                    <div style="text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 15px;">
+                        <button class="btn-done" style="margin: 0; padding: 8px 15px; font-size: 13px;" onclick="startChatWithUser('${order.fld_seller_id}', 'buyer')">Chat Seller 💬</button>
                         <strong>Total: RM ${parseFloat(order.fld_total_amount).toFixed(2)}</strong>
                     </div>
                 </div>
@@ -131,6 +132,45 @@ auth.onAuthStateChanged(async (user) => {
         ordersList.innerHTML = "<p>Error loading orders.</p>";
     }
 });
+
+import { serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+window.startChatWithUser = async function(otherUserId, role) {
+    const user = auth.currentUser;
+    if (!user) {
+        alert("Please login first!");
+        window.location.href = "login.php";
+        return;
+    }
+
+    if (user.uid === otherUserId) {
+        alert("You cannot chat with yourself.");
+        return;
+    }
+
+    const buyerId = role === 'seller' ? user.uid : otherUserId;
+    const sellerId = role === 'seller' ? otherUserId : user.uid;
+    const chatRoomId = `${buyerId}_${sellerId}`;
+
+    try {
+        const chatRoomData = {
+            fld_chat_room_id: chatRoomId,
+            fld_pemilik_ID: buyerId,
+            fld_penjaga_ID: sellerId,
+            participants: [buyerId, sellerId],
+            lastMessage: "Hi! Let's talk about the order details. 🐾",
+            lastMessageTime: serverTimestamp(),
+            lastSenderId: user.uid,
+            isRead: false
+        };
+
+        await setDoc(doc(db, "chats", chatRoomId), chatRoomData, { merge: true });
+        window.location.href = `message.php?chatId=${chatRoomId}`;
+    } catch(err) {
+        console.error("Error starting chat:", err);
+        alert("Failed to start chat room.");
+    }
+};
 </script>
 </body>
 </html>

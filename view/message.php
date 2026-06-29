@@ -198,6 +198,34 @@ auth.onAuthStateChanged(async (user) => {
         const sideDot = document.getElementById("sideBookingDot");
         if (sideDot) sideDot.style.display = snap.docs.length > 0 ? "inline-block" : "none";
     });
+
+    // Check if chatId is passed in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlChatId = urlParams.get('chatId');
+    if (urlChatId) {
+        try {
+            const chatDoc = await getDoc(doc(db, "chats", urlChatId));
+            if (chatDoc.exists()) {
+                const data = chatDoc.data();
+                const otherUserId = data.participants.find(id => id !== currentUser.uid);
+                
+                let otherUserName = "User";
+                const userSnap = await getDoc(doc(db, "pengguna", otherUserId));
+                if (userSnap.exists()) {
+                    otherUserName = userSnap.data().fld_user_name || "User";
+                } else {
+                    const sitterSnap = await getDoc(doc(db, "penjaga_kucing", otherUserId));
+                    if (sitterSnap.exists()) {
+                        otherUserName = sitterSnap.data().fld_user_fullname || "Sitter";
+                    }
+                }
+                
+                window.openChat(urlChatId, otherUserName, otherUserId);
+            }
+        } catch(e) {
+            console.error("Error loading chat from URL parameter:", e);
+        }
+    }
 });
 
 // --- 2. LOAD CHATS (List of people) ---
