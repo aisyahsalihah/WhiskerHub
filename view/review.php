@@ -91,6 +91,7 @@ import {
 const urlParams = new URLSearchParams(window.location.search);
 const sitterID = urlParams.get('sitterId');
 const ownerID = urlParams.get('ownerId');
+const bookingID = urlParams.get('bookingId');
 const role = urlParams.get('role') || 'owner';
 const reviewForm = document.getElementById('reviewForm');
 
@@ -136,7 +137,8 @@ reviewForm.addEventListener('submit', async (e) => {
             fld_user_rating: parseInt(ratingValue),
             fld_user_comment: commentValue,
             createdAt: serverTimestamp(),
-            role: role
+            role: role,
+            bookingID: bookingID
         };
 
         if (role === 'sitter') {

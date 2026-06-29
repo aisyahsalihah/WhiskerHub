@@ -147,8 +147,8 @@
                 return timeB - timeA;
             });
 
-            sortedDocs.forEach((doc) => {
-                const data = doc.data();
+            for (const docSnap of sortedDocs) {
+                const data = docSnap.data();
 
                 if (data.fld_tempahan_status === "Completed") {
                     hasHistory = true;
@@ -161,17 +161,31 @@
                     const total = parseFloat(data.fld_tempahan_jumlah || 0).toFixed(2);
                     
                     let roleTag = "";
+                    let isUserSitter = false;
                     if (data.fld_penjaga_ID === user.uid && data.fld_pemilik_ID !== user.uid) {
                         roleTag = "<span style='font-size:11px; background:#e2e3e5; padding:2px 6px; border-radius:4px;'>As Sitter</span>";
+                        isUserSitter = true;
                     } else if (data.fld_pemilik_ID === user.uid) {
                         roleTag = "<span style='font-size:11px; background:#e2e3e5; padding:2px 6px; border-radius:4px;'>As Owner</span>";
                     }
 
                     let reviewBtn = "";
-                    if (data.fld_pemilik_ID === user.uid) {
-                        reviewBtn = `<br><a href="review.php?sitterId=${data.fld_penjaga_ID}&bookingId=${doc.id}&role=owner" style="padding: 5px 12px; font-size: 11px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 5px; font-weight: bold; margin-top: 10px;">Review Sitter ⭐️</a>`;
-                    } else if (data.fld_penjaga_ID === user.uid) {
-                        reviewBtn = `<br><a href="review.php?ownerId=${data.fld_pemilik_ID}&bookingId=${doc.id}&role=sitter" style="padding: 5px 12px; font-size: 11px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 5px; font-weight: bold; margin-top: 10px;">Review Owner ⭐️</a>`;
+                    try {
+                        const targetRole = isUserSitter ? "sitter" : "owner";
+                        const qReview = query(collection(db, "review"), where("bookingID", "==", docSnap.id), where("role", "==", targetRole));
+                        const reviewSnap = await getDocs(qReview);
+                        
+                        if (reviewSnap.empty) {
+                            if (isUserSitter) {
+                                reviewBtn = `<br><a href="review.php?ownerId=${data.fld_pemilik_ID}&bookingId=${docSnap.id}&role=sitter" style="padding: 5px 12px; font-size: 11px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 5px; font-weight: bold; margin-top: 10px;">Review Owner ⭐️</a>`;
+                            } else {
+                                reviewBtn = `<br><a href="review.php?sitterId=${data.fld_penjaga_ID}&bookingId=${docSnap.id}&role=owner" style="padding: 5px 12px; font-size: 11px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 5px; font-weight: bold; margin-top: 10px;">Review Sitter ⭐️</a>`;
+                            }
+                        } else {
+                            reviewBtn = `<br><span style="font-size: 11px; color: #27ae60; font-weight: bold; margin-top: 10px; display: inline-block;">✓ Reviewed</span>`;
+                        }
+                    } catch(e) {
+                        console.error("Error checking review existence:", e);
                     }
 
                     card.innerHTML = `
@@ -180,14 +194,14 @@
                             <p style="color:#888; font-size:13px; margin: 5px 0;">
                                 ${service} | RM ${total}
                             </p>
-                            <small style="color:#ccc; font-size:11px;">Booking ID: ${doc.id}</small>
+                            <small style="color:#ccc; font-size:11px;">Booking ID: ${docSnap.id}</small>
                             ${reviewBtn}
                         </div>
                         <span class="status-pill" style="background:#d4edda; color:#155724;">COMPLETED</span>
                     `;
                     listContainer.appendChild(card);
                 }
-            });
+            }
 
             if (!hasHistory) {
                 listContainer.innerHTML = "<p>No completed bookings yet. 🐾</p>";
