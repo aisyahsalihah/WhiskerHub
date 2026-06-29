@@ -39,7 +39,7 @@
 
 <script type="module">
 import { auth, db } from "../js/firebase.js";
-import { doc, getDoc, collection, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const ordersList = document.getElementById('ordersList');
 
@@ -120,7 +120,7 @@ auth.onAuthStateChanged(async (user) => {
                         ${itemsHTML}
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 15px;">
-                        <button class="btn-done" style="margin: 0; padding: 8px 15px; font-size: 13px;" onclick="startChatWithUser('${order.fld_seller_id}', 'buyer')">Chat Seller 💬</button>
+                        <button class="btn-done" style="margin: 0; padding: 8px 15px; font-size: 13px;" onclick="startChatWithUser('${order.fld_seller_id}', 'buyer', 'Hi! I have a question regarding my Order #${docSnap.id}. 🐾')">Chat Seller 💬</button>
                         <strong>Total: RM ${parseFloat(order.fld_total_amount).toFixed(2)}</strong>
                     </div>
                 </div>
@@ -135,7 +135,7 @@ auth.onAuthStateChanged(async (user) => {
 
 import { serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-window.startChatWithUser = async function(otherUserId, role) {
+window.startChatWithUser = async function(otherUserId, role, defaultMsg) {
     const user = auth.currentUser;
     if (!user) {
         alert("Please login first!");
@@ -158,13 +158,21 @@ window.startChatWithUser = async function(otherUserId, role) {
             fld_pemilik_ID: buyerId,
             fld_penjaga_ID: sellerId,
             participants: [buyerId, sellerId],
-            lastMessage: "Hi! Let's talk about the order details. 🐾",
+            lastMessage: defaultMsg,
             lastMessageTime: serverTimestamp(),
             lastSenderId: user.uid,
             isRead: false
         };
 
         await setDoc(doc(db, "chats", chatRoomId), chatRoomData, { merge: true });
+        
+        await addDoc(collection(db, "chats", chatRoomId, "messages"), {
+            senderId: user.uid,
+            text: defaultMsg,
+            createdAt: serverTimestamp(),
+            isRead: false
+        });
+
         window.location.href = `message.php?chatId=${chatRoomId}`;
     } catch(err) {
         console.error("Error starting chat:", err);

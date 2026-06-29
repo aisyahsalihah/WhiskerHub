@@ -233,6 +233,9 @@ window.chatWithSeller = async function() {
         return;
     }
 
+    const productName = document.getElementById('modalTitle').innerText;
+    const productPrice = document.getElementById('modalPrice').innerText;
+    const defaultMsg = `Hi! I am interested in your product: ${productName} (${productPrice}). 🐾`;
     const chatRoomId = `${user.uid}_${sellerId}`;
 
     try {
@@ -241,13 +244,21 @@ window.chatWithSeller = async function() {
             fld_pemilik_ID: user.uid,
             fld_penjaga_ID: sellerId,
             participants: [user.uid, sellerId],
-            lastMessage: "Hi! I am interested in your product. 🐾",
+            lastMessage: defaultMsg,
             lastMessageTime: serverTimestamp(),
             lastSenderId: user.uid,
             isRead: false
         };
 
         await setDoc(doc(db, "chats", chatRoomId), chatRoomData, { merge: true });
+        
+        await addDoc(collection(db, "chats", chatRoomId, "messages"), {
+            senderId: user.uid,
+            text: defaultMsg,
+            createdAt: serverTimestamp(),
+            isRead: false
+        });
+
         window.location.href = `message.php?chatId=${chatRoomId}`;
     } catch(err) {
         console.error("Error starting chat with seller:", err);

@@ -282,7 +282,7 @@ auth.onAuthStateChanged(async (user) => {
                     <td>
                         <button class="btn-update" onclick="openShipModal('${id}', '${order.fld_buyer_email || ''}')">Ship</button>
                         <button class="btn-update" onclick="updateStatus('${id}', 'Delivered')">Deliver</button>
-                        <button class="btn-update" style="background:#ffb6c1; color:#333;" onclick="startChatWithUser('${order.fld_user_id}', 'seller')">Chat Buyer 💬</button>
+                        <button class="btn-update" style="background:#ffb6c1; color:#333;" onclick="startChatWithUser('${order.fld_user_id}', 'seller', 'Hi! I am contacting you regarding your Order #${id}. 🐾')">Chat Buyer 💬</button>
                     </td>
                 </tr>
             `;
@@ -457,7 +457,7 @@ window.deleteProduct = async function(id) {
         alert("Failed to delete product.");
     }
 };
-window.startChatWithUser = async function(otherUserId, role) {
+window.startChatWithUser = async function(otherUserId, role, defaultMsg) {
     const user = auth.currentUser;
     if (!user) {
         alert("Please login first!");
@@ -480,13 +480,21 @@ window.startChatWithUser = async function(otherUserId, role) {
             fld_pemilik_ID: buyerId,
             fld_penjaga_ID: sellerId,
             participants: [buyerId, sellerId],
-            lastMessage: "Hi! Let's talk about the order details. 🐾",
+            lastMessage: defaultMsg,
             lastMessageTime: serverTimestamp(),
             lastSenderId: user.uid,
             isRead: false
         };
 
         await setDoc(doc(db, "chats", chatRoomId), chatRoomData, { merge: true });
+        
+        await addDoc(collection(db, "chats", chatRoomId, "messages"), {
+            senderId: user.uid,
+            text: defaultMsg,
+            createdAt: serverTimestamp(),
+            isRead: false
+        });
+
         window.location.href = `message.php?chatId=${chatRoomId}`;
     } catch(err) {
         console.error("Error starting chat:", err);
