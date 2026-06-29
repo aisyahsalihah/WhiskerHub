@@ -72,11 +72,18 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     try {
+        let isSeller = false;
         let userSnap = await getDoc(doc(db, "pengguna", user.uid));
-        if (!userSnap.exists()) {
-            userSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+        if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+            isSeller = true;
+        } else {
+            let sitterSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+            if (sitterSnap.exists() && sitterSnap.data().fld_is_seller === true) {
+                isSeller = true;
+            }
         }
-        if (!userSnap.exists() || userSnap.data().fld_is_seller !== true) {
+
+        if (!isSeller) {
             alert("Access Denied: You need to register your shop first.");
             window.location.href = "mysales.php";
             return;
