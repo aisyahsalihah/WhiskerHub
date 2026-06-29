@@ -6,6 +6,7 @@
     <title>Messages - WhiskerHub</title>
 
     <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .emoji-picker-menu {
             display: none;
@@ -63,6 +64,24 @@
         .form-group label { display: block; font-size: 13px; margin-bottom: 5px; font-weight: bold; }
         .form-group input[type="text"], .form-group input[type="file"], .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
         .btn-submit-report { width: 100%; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        /* Back Button Style */
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+            display: none; /* Shown only via media query on mobile */
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: #eee;
+        }
     </style>
 
 
@@ -96,8 +115,9 @@
     </div>
 
     <div class="chat-container">
-        <div class="chat-header" style="display: flex; align-items: center; width: 100%;">
-            <div>
+        <div class="chat-header" style="display: flex; align-items: center; width: 100%; gap: 15px;">
+            <button class="back-btn" id="backBtn" onclick="closeChat()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div style="flex: 1;">
                 <div class="chat-user" id="activeChatName">Select a user to start chatting</div>
                 <div class="chat-status" id="activeChatStatus"><span class="online-dot"></span> Online</div>
             </div>
@@ -229,10 +249,16 @@ async function loadChats() {
 }
 
 // --- 3. OPEN CHAT & LOAD MESSAGES ---
+window.closeChat = function() {
+    currentChatId = null;
+    document.querySelector('.dashboard-container').classList.remove('chat-active');
+};
+
 window.openChat = function(chatId, userName, otherUserId) {
     currentChatId = chatId;
     currentOtherUserId = otherUserId; // Used for reporting
     
+    document.querySelector('.dashboard-container').classList.add('chat-active');
     document.getElementById("activeChatName").innerText = userName;
     document.getElementById("btnReportUser").style.display = "block";
     
