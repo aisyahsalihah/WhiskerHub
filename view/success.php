@@ -43,7 +43,7 @@ if ($booking_id !== 'unknown' && !empty($customer_email)) {
         </div>
     ";
 
-    $sent = sendBrevoEmail($customer_email, '', $subject, $body, 'no-reply@whiskerhub.com', 'WhiskerHub System');
+    $sent = sendBrevoEmail($customer_email, '', $subject, $body, 'aisyahsalihah22@gmail.com', 'WhiskerHub System');
     if ($sent) {
         $email_status = "Official invoice has been sent to your email ($customer_email).";
     } else {

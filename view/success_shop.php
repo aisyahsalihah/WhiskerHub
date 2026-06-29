@@ -50,7 +50,7 @@ $body = "
     </div>
 ";
 
-$sent = sendBrevoEmail($customer_email, '', $subject, $body, 'no-reply@whiskerhub.com', 'WhiskerShop');
+$sent = sendBrevoEmail($customer_email, '', $subject, $body, 'aisyahsalihah22@gmail.com', 'WhiskerShop');
 if ($sent) {
     $email_status = "Official invoice has been sent to your email ($customer_email).";
 } else {

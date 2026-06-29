@@ -28,7 +28,7 @@ $body = "
     </div>
 ";
 
-$sent = sendBrevoEmail($customer_email, '', $subject, $body, 'no-reply@whiskerhub.com', 'WhiskerShop');
+$sent = sendBrevoEmail($customer_email, '', $subject, $body, 'aisyahsalihah22@gmail.com', 'WhiskerShop');
 
 if ($sent) {
     echo "Shipping email sent successfully to $customer_email.";
