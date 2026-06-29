@@ -1,6 +1,4 @@
 <?php
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config.php';
@@ -26,38 +24,27 @@ $booking_id = $_GET['booking_id'] ?? 'unknown';
 $customer_email = $_GET['email'] ?? '';
 
 // Email Sending Logic
-$mail = new PHPMailer(true);
 $email_status = "";
 
 if ($booking_id !== 'unknown' && !empty($customer_email)) {
-    try {
-        $mail->isMail();
+    $subject = "WhiskerHub Invoice - Booking #$booking_id";
+    $body = "
+        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px;'>
+            <h2 style='color: #ff9800;'>WhiskerHub</h2>
+            <hr style='border: 0; border-top: 1px solid #eee;'>
+            <p>Hello Cat Lover! 🐾</p>
+            <p>Your payment for booking <strong>#$booking_id</strong> has been successfully received.</p>
+            <p>Your cat sitter will contact you shortly, or you can start a chat directly within the application.</p>
+            <br>
+            <p>Thank you for choosing WhiskerHub!</p>
+        </div>
+    ";
 
-        // Recipient
-        $mail->setFrom('no-reply@whiskerhub.com', 'WhiskerHub System');
-        $mail->addAddress($customer_email); 
-
-        // Invoice Content
-        $mail->isHTML(true);
-        $mail->Subject = "WhiskerHub Invoice - Booking #$booking_id";
-        
-        // Email Template Design
-        $mail->Body    = "
-            <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px;'>
-                <h2 style='color: #ff9800;'>WhiskerHub</h2>
-                <hr style='border: 0; border-top: 1px solid #eee;'>
-                <p>Hello Cat Lover! 🐾</p>
-                <p>Your payment for booking <strong>#$booking_id</strong> has been successfully received.</p>
-                <p>Your cat sitter will contact you shortly, or you can start a chat directly within the application.</p>
-                <br>
-                <p>Thank you for choosing WhiskerHub!</p>
-            </div>
-        ";
-
-        $mail->send();
+    $sent = sendBrevoEmail($customer_email, '', $subject, $body, 'no-reply@whiskerhub.com', 'WhiskerHub System');
+    if ($sent) {
         $email_status = "Official invoice has been sent to your email ($customer_email).";
-    } catch (Exception $e) {
-        $email_status = "Email could not be sent. Error: {$mail->ErrorInfo}";
+    } else {
+        $email_status = "Invoice email could not be sent (please check Brevo setup).";
     }
 } else {
     $email_status = "Incomplete booking details for email delivery.";

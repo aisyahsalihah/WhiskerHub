@@ -1,6 +1,4 @@
 <?php
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config.php';
@@ -31,38 +29,29 @@ if ($type === 'stripe') {
 }
 
 // Send Invoice Email
-$mail = new PHPMailer(true);
 $email_status = "";
 
-try {
-    $mail->isMail();
+$methodText = $type === 'stripe' ? 'Paid via Credit Card' : 'Cash on Delivery (COD)';
+$subject = "Your WhiskerShop Invoice!";
+$body = "
+    <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px;'>
+        <h2 style='color: #ffb6c1;'>WhiskerShop Purchase</h2>
+        <hr style='border: 0; border-top: 1px solid #eee;'>
+        <p>Hello! 🐾</p>
+        <p>Your order has been successfully placed.</p>
+        <p><strong>Order ID(s):</strong> $booking_id_string</p>
+        <p><strong>Payment Method:</strong> $methodText</p>
+        <br>
+        <p>The seller has been notified and will prepare your order for shipping.</p>
+        <p>Thank you for shopping at WhiskerHub!</p>
+    </div>
+";
 
-    $mail->setFrom('no-reply@whiskerhub.com', 'WhiskerShop');
-    $mail->addAddress($customer_email); 
-
-    $mail->isHTML(true);
-    $mail->Subject = "Your WhiskerShop Invoice!";
-    
-    $methodText = $type === 'stripe' ? 'Paid via Credit Card' : 'Cash on Delivery (COD)';
-
-    $mail->Body = "
-        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px;'>
-            <h2 style='color: #ffb6c1;'>WhiskerShop Purchase</h2>
-            <hr style='border: 0; border-top: 1px solid #eee;'>
-            <p>Hello! 🐾</p>
-            <p>Your order has been successfully placed.</p>
-            <p><strong>Order ID(s):</strong> $booking_id_string</p>
-            <p><strong>Payment Method:</strong> $methodText</p>
-            <br>
-            <p>The seller has been notified and will prepare your order for shipping.</p>
-            <p>Thank you for shopping at WhiskerHub!</p>
-        </div>
-    ";
-
-    $mail->send();
+$sent = sendBrevoEmail($customer_email, '', $subject, $body, 'no-reply@whiskerhub.com', 'WhiskerShop');
+if ($sent) {
     $email_status = "Official invoice has been sent to your email ($customer_email).";
-} catch (Exception $e) {
-    $email_status = "Email could not be sent. Error: {$mail->ErrorInfo}";
+} else {
+    $email_status = "Invoice email could not be sent (please check Brevo setup).";
 }
 
 ?>
