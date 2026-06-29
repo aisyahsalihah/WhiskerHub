@@ -40,7 +40,7 @@
     <div class="nav-links">
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php">Shop</a>
-        <a href="mysales.php" class="active">My Sales</a>
+        <a href="mysales.php" class="active" id="navMySales">My Sales</a>
     </div>
 </div>
 
@@ -198,7 +198,13 @@ auth.onAuthStateChanged(async (user) => {
             currentCollection = "pengguna";
         }
 
-        if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+        const isSeller = userSnap.exists() && userSnap.data().fld_is_seller === true;
+        const salesLink = document.getElementById("navMySales");
+        if (salesLink) {
+            salesLink.innerText = isSeller ? "My Sales" : "Become a Seller";
+        }
+
+        if (isSeller) {
             document.getElementById('sellerDashboard').style.display = 'block';
             loadProducts(user.uid);
         } else {

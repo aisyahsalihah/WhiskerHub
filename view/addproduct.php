@@ -15,7 +15,7 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php">Shopping</a>
         <a href="myorders.php">My Orders</a>
-        <a href="mysales.php" class="active">My Sales</a>
+        <a href="mysales.php" class="active" id="navMySales">My Sales</a>
     </div>
 </div>
 
@@ -47,12 +47,10 @@
 
             <div class="input-group">
                 <label>PRODUCT IMAGE</label>
-                <div class="file-upload-wrapper" style="border: 2px dashed #eee; padding: 20px; border-radius: 10px; text-align: center;">
-                    <input type="file" id="prod_image" accept="image/*">
-                </div>
+                <input type="file" id="prod_image" accept="image/*" required>
             </div>
 
-            <button type="submit" id="submitBtn" class="btn-register" style="background-color: #ffb6c1; color: #333;">ADD PRODUCT</button>
+            <button type="submit" id="submitBtn" class="btn-buy" style="background: #333; color: white; padding: 15px 60px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 20px;">ADD PRODUCT NOW</button>
         </form>
     </div>
 </div>
@@ -81,6 +79,11 @@ auth.onAuthStateChanged(async (user) => {
             if (sitterSnap.exists() && sitterSnap.data().fld_is_seller === true) {
                 isSeller = true;
             }
+        }
+
+        const salesLink = document.getElementById("navMySales");
+        if (salesLink) {
+            salesLink.innerText = isSeller ? "My Sales" : "Become a Seller";
         }
 
         if (!isSeller) {

@@ -16,7 +16,7 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php" class="active">Shopping</a>
         <a href="myorders.php">My Orders</a>
-        <a href="mysales.php">My Sales</a>
+        <a href="mysales.php" id="navMySales">My Sales</a>
         <a href="addtocart.php">Cart 🛒</a>
     </div>
 </div>
@@ -188,6 +188,30 @@ window.addToCart = async function() {
         alert("Failed to add to cart.");
     }
 };
+
+// Dynamic navbar seller check
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        try {
+            let isSeller = false;
+            let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+            if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+                isSeller = true;
+            } else {
+                let sitterSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+                if (sitterSnap.exists() && sitterSnap.data().fld_is_seller === true) {
+                    isSeller = true;
+                }
+            }
+            const salesLink = document.getElementById("navMySales");
+            if (salesLink) {
+                salesLink.innerText = isSeller ? "My Sales" : "Become a Seller";
+            }
+        } catch (e) {
+            console.error("Error setting navbar links:", e);
+        }
+    }
+});
 
 // Jalankan load data
 loadProducts();

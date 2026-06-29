@@ -26,7 +26,7 @@
         <a href="mainmenu.php">Main Menu</a>
         <a href="shopping.php">Shopping</a>
         <a href="myorders.php" class="active">My Orders</a>
-        <a href="mysales.php">My Sales</a>
+        <a href="mysales.php" id="navMySales">My Sales</a>
     </div>
 </div>
 
@@ -47,6 +47,25 @@ auth.onAuthStateChanged(async (user) => {
     if (!user) {
         window.location.href = "login.php";
         return;
+    }
+
+    try {
+        let isSeller = false;
+        let userSnap = await getDoc(doc(db, "pengguna", user.uid));
+        if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
+            isSeller = true;
+        } else {
+            let sitterSnap = await getDoc(doc(db, "penjaga_kucing", user.uid));
+            if (sitterSnap.exists() && sitterSnap.data().fld_is_seller === true) {
+                isSeller = true;
+            }
+        }
+        const salesLink = document.getElementById("navMySales");
+        if (salesLink) {
+            salesLink.innerText = isSeller ? "My Sales" : "Become a Seller";
+        }
+    } catch (e) {
+        console.error("Error setting navbar links:", e);
     }
 
     try {
