@@ -511,7 +511,7 @@ window.approveCompletion = async (bookingId, sitterId) => {
         });
 
         alert("Service Verified! Redirecting to review page... 🐾");
-        window.location.href = `review.php?sitterId=${sitterId}`;
+        window.location.href = `review.php?sitterId=${sitterId}&bookingId=${bookingId}&role=owner`;
     } catch (err) {
         console.error("Update error:", err);
         alert("Could not complete booking. Try again.");
