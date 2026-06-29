@@ -18,12 +18,11 @@
 <body>
 
 <div class="navbar">
-    <a href="mainmenu.php" class="logo">WhiskerHub</a>
+    <div class="logo">WhiskerHub Admin</div>
     <div class="nav-links">
-        <a href="mainmenu.php">Main Menu</a>
-        <a href="shopping.php">Shop</a>
-        <a href="admin_shop.php" class="active">Orders</a>
-        <a href="addproduct.php">Add Product</a>
+        <a href="admin_dashboard.php">Admin Dashboard</a>
+        <a href="admin_shop.php" class="active">Shop Orders</a>
+        <a href="#" id="logoutBtn">Logout</a>
     </div>
 </div>
 
@@ -47,10 +46,26 @@
 </div>
 
 <script type="module">
-import { db } from "../js/firebase.js";
+import { auth, db } from "../js/firebase.js";
 import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 const adminOrderList = document.getElementById('adminOrderList');
+
+auth.onAuthStateChanged((user) => {
+    if (!user || user.email !== 'admin@whiskerhub.com') {
+        alert("Access Denied. Admins only.");
+        window.location.href = "login.php";
+    } else {
+        loadAllOrders();
+    }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await signOut(auth);
+    window.location.href = "login.php";
+});
 
 async function loadAllOrders() {
     try {
@@ -115,8 +130,6 @@ window.updateStatus = async function(orderId, newStatus) {
         alert("Failed to update status.");
     }
 }
-
-loadAllOrders();
 </script>
 </body>
 </html>
