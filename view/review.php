@@ -90,7 +90,14 @@ import {
 
 const urlParams = new URLSearchParams(window.location.search);
 const sitterID = urlParams.get('sitterId');
+const ownerID = urlParams.get('ownerId');
+const role = urlParams.get('role') || 'owner';
 const reviewForm = document.getElementById('reviewForm');
+
+const subtitle = document.querySelector('.review-card p');
+if (subtitle) {
+    subtitle.innerText = role === 'sitter' ? "How was your experience with this owner?" : "How was your experience with this sitter?";
+}
 
 reviewForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -101,17 +108,21 @@ reviewForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        // 1. Tarik nama sebenar user dari koleksi 'pengguna'
-        const userDocRef = doc(db, "pengguna", auth.currentUser.uid);
-        const userSnap = await getDoc(userDocRef);
-        
         let actualName = "Anonymous User";
-        if (userSnap.exists()) {
-            // Gunakan field 'fld_user_name' ikut struktur database awak
-            actualName = userSnap.data().fld_user_name || "User"; 
+        if (role === 'sitter') {
+            const sitterDocRef = doc(db, "penjaga_kucing", auth.currentUser.uid);
+            const sitterSnap = await getDoc(sitterDocRef);
+            if (sitterSnap.exists()) {
+                actualName = sitterSnap.data().fld_user_fullname || "Sitter";
+            }
+        } else {
+            const userDocRef = doc(db, "pengguna", auth.currentUser.uid);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                actualName = userSnap.data().fld_user_name || "User";
+            }
         }
 
-        // 2. Ambil input dari form
         const ratingValue = document.querySelector('input[name="rating"]:checked')?.value;
         const commentValue = document.getElementById('comment').value;
 
@@ -120,14 +131,19 @@ reviewForm.addEventListener('submit', async (e) => {
             return;
         }
 
-        // 3. Simpan ke koleksi 'review'
         const reviewData = {
-            sitterID: sitterID,
-            fld_user_name: actualName, // Sekarang dia save nama dari Firestore!
+            fld_user_name: actualName,
             fld_user_rating: parseInt(ratingValue),
             fld_user_comment: commentValue,
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            role: role
         };
+
+        if (role === 'sitter') {
+            reviewData.ownerID = ownerID;
+        } else {
+            reviewData.sitterID = sitterID;
+        }
 
         await addDoc(collection(db, "review"), reviewData);
         alert("Thank you for your review, " + actualName + "! 🐾");

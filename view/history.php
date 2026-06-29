@@ -167,6 +167,13 @@
                         roleTag = "<span style='font-size:11px; background:#e2e3e5; padding:2px 6px; border-radius:4px;'>As Owner</span>";
                     }
 
+                    let reviewBtn = "";
+                    if (data.fld_pemilik_ID === user.uid) {
+                        reviewBtn = `<br><a href="review.php?sitterId=${data.fld_penjaga_ID}&bookingId=${doc.id}&role=owner" style="padding: 5px 12px; font-size: 11px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 5px; font-weight: bold; margin-top: 10px;">Review Sitter ⭐️</a>`;
+                    } else if (data.fld_penjaga_ID === user.uid) {
+                        reviewBtn = `<br><a href="review.php?ownerId=${data.fld_pemilik_ID}&bookingId=${doc.id}&role=sitter" style="padding: 5px 12px; font-size: 11px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 5px; font-weight: bold; margin-top: 10px;">Review Owner ⭐️</a>`;
+                    }
+
                     card.innerHTML = `
                         <div>
                             <strong>${dateRange}</strong> ${roleTag}
@@ -174,6 +181,7 @@
                                 ${service} | RM ${total}
                             </p>
                             <small style="color:#ccc; font-size:11px;">Booking ID: ${doc.id}</small>
+                            ${reviewBtn}
                         </div>
                         <span class="status-pill" style="background:#d4edda; color:#155724;">COMPLETED</span>
                     `;

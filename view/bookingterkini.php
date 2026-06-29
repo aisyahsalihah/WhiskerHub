@@ -261,6 +261,23 @@ auth.onAuthStateChanged(async (user) => {
                 otherPartyId = booking.fld_pemilik_ID;
             }
 
+            // Fetch reviews for the other party
+            let ratingDisplay = "⭐ Loading...";
+            try {
+                const reviewsSnap = await getDocs(query(collection(db, "review"), where(displayRole === "SITTER" ? "sitterID" : "ownerID", "==", otherPartyId)));
+                let totalStars = 0;
+                let reviewCount = 0;
+                reviewsSnap.forEach(r => {
+                    totalStars += r.data().fld_user_rating || 0;
+                    reviewCount++;
+                });
+                const avgRating = reviewCount > 0 ? (totalStars / reviewCount).toFixed(1) : "No Ratings";
+                ratingDisplay = `⭐ ${avgRating} (${reviewCount} reviews)`;
+            } catch(e) {
+                console.error("Error loading reviews for other party:", e);
+                ratingDisplay = "⭐ -";
+            }
+
             const card = document.createElement("div");
             card.className = "booking-box";
             card.innerHTML = `
@@ -271,7 +288,7 @@ auth.onAuthStateChanged(async (user) => {
                     </tr>
                     <tr>
                         <td><strong>${displayRole}:</strong></td>
-                        <td>${displayName}</td>
+                        <td>${displayName} <span style="color: #ff9800; font-weight: bold; font-size: 13px; margin-left: 8px;">${ratingDisplay}</span></td>
                     </tr>
                     <tr>
                         <td><strong>SERVICE:</strong></td>
