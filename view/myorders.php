@@ -105,6 +105,19 @@ auth.onAuthStateChanged(async (user) => {
                 });
             }
 
+            let shippingHTML = "";
+            if (order.fld_status === "Shipped" || order.fld_status === "Delivered") {
+                const tracking = order.fld_tracking_number || "No tracking number provided";
+                const img = order.fld_shipping_image ? `<br><a href="${order.fld_shipping_image}" target="_blank" style="color: #ffb6c1; text-decoration: underline; font-weight: bold; font-size: 13px;">View Shipping Proof Receipt 📄</a>` : "";
+                shippingHTML = `
+                    <div style="background: #e8f4fd; padding: 12px 15px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #0056b3; text-align: left;">
+                        <strong>Shipping Info:</strong><br>
+                        Tracking Number: <code>${tracking}</code>
+                        ${img}
+                    </div>
+                `;
+            }
+
             ordersList.innerHTML += `
                 <div class="order-card">
                     <div class="order-header">
@@ -119,7 +132,8 @@ auth.onAuthStateChanged(async (user) => {
                     <div class="order-items">
                         ${itemsHTML}
                     </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 15px;">
+                    ${shippingHTML}
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
                         <button class="btn-done" style="margin: 0; padding: 8px 15px; font-size: 13px;" onclick="startChatWithUser('${order.fld_seller_id}', 'buyer', 'Hi! I have a question regarding my Order #${docSnap.id}. 🐾')">Chat Seller 💬</button>
                         <strong>Total: RM ${parseFloat(order.fld_total_amount).toFixed(2)}</strong>
                     </div>
