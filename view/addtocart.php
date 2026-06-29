@@ -44,7 +44,7 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         loadCart(user.uid);
     } else {
-        window.location.href = "signin.php";
+        window.location.href = "login.php";
 
     }
 });

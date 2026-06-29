@@ -165,7 +165,7 @@ window.addToCart = async function() {
     const user = auth.currentUser;
     if (!user) {
         alert("Please login first!");
-        window.location.href = "signin.php";
+        window.location.href = "login.php";
         return;
     }
 

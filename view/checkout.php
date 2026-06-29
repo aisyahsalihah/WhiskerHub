@@ -93,7 +93,7 @@ let orderTotal = 0;
 
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
-        window.location.href = "signin.php";
+        window.location.href = "login.php";
         return;
     }
     

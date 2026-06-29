@@ -166,7 +166,7 @@ const messageInput = document.getElementById("messageInput");
 // --- 1. AUTH STATE ---
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
-        window.location.href = "signin.php";
+        window.location.href = "login.php";
         return;
     }
     currentUser = user;

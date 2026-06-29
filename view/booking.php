@@ -309,7 +309,7 @@ auth.onAuthStateChanged(async (user) => {
                 }
             }
         } catch (err) { console.error(err); }
-    } else { window.location.assign("signin.php"); }
+    } else { window.location.assign("login.php"); }
 });
 
 // C. SAVE TO FIRESTORE

@@ -126,7 +126,7 @@ auth.onAuthStateChanged(async (user) => {
             <a href="signup.php">Sign Up</a>
             <a href="login.php">Log In</a>
         `;
-        window.location.href = "signin.php";
+        window.location.href = "login.php";
         return;
     }
 
