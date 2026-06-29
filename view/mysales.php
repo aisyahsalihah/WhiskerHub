@@ -23,6 +23,14 @@
         .form-group label { display: block; font-size: 13px; margin-bottom: 5px; font-weight: bold; }
         .form-group input[type="text"], .form-group input[type="file"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
         .btn-submit-ship { width: 100%; padding: 10px; background: #ffb6c1; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        /* Tab Styles */
+        .dashboard-tabs { display: flex; gap: 15px; border-bottom: 2px solid #eee; margin-bottom: 25px; }
+        .tab-btn { padding: 12px 25px; border: none; background: none; font-size: 15px; font-weight: bold; cursor: pointer; color: #666; transition: 0.3s; border-bottom: 3px solid transparent; }
+        .tab-btn:hover { color: #ffb6c1; }
+        .tab-btn.active { color: #ffb6c1; border-bottom-color: #ffb6c1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body>
@@ -38,24 +46,53 @@
 
 <div class="admin-container" id="sellerDashboard" style="display:none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h1 style="font-family: 'Playfair Display', serif; margin: 0;">Seller Dashboard - My Sales</h1>
+        <h1 style="font-family: 'Playfair Display', serif; margin: 0;">Seller Dashboard</h1>
         <a href="addproduct.php" style="padding: 10px 20px; font-size: 14px; text-decoration: none; display: inline-block; background: #ffb6c1; color: #333; border-radius: 8px; font-weight: bold; transition: 0.3s;" onmouseover="this.style.background='#ff9aa2'" onmouseout="this.style.background='#ffb6c1'">+ Add New Product</a>
     </div>
-    <table class="order-table">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Customer Details</th>
-                <th>Items Sold</th>
-                <th>Revenue</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="adminOrderList">
-            <tr><td colspan="6" style="text-align: center;">Loading your sales...</td></tr>
-        </tbody>
-    </table>
+
+    <!-- Dashboard Tabs -->
+    <div class="dashboard-tabs">
+        <button class="tab-btn active" onclick="switchTab('ordersTab', this)">Orders Received</button>
+        <button class="tab-btn" onclick="switchTab('productsTab', this)">My Products</button>
+    </div>
+
+    <!-- Tab 1: Orders Received -->
+    <div id="ordersTab" class="tab-content active">
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer Details</th>
+                    <th>Items Sold</th>
+                    <th>Revenue</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="adminOrderList">
+                <tr><td colspan="6" style="text-align: center;">Loading your sales...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tab 2: My Products -->
+    <div id="productsTab" class="tab-content">
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="sellerProductList">
+                <tr><td colspan="6" style="text-align: center;">Loading your products...</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Seller Registration Form (Hidden by default) -->
@@ -70,6 +107,35 @@
         </div>
         
         <button id="btnRegisterSeller" style="width: 100%; padding: 14px; background: #ffb6c1; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#ff9aa2'" onmouseout="this.style.background='#ffb6c1'">REGISTER AS SELLER</button>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('editProductModal').style.display='none'">&times;</span>
+        <h2>Edit Product</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Update your product details below.</p>
+        
+        <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="editProdName">
+        </div>
+        <div class="form-group">
+            <label>Price (RM)</label>
+            <input type="text" id="editProdPrice">
+        </div>
+        <div class="form-group">
+            <label>Stock</label>
+            <input type="text" id="editProdStock">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="editProdDesc" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; resize: vertical;"></textarea>
+        </div>
+        <input type="hidden" id="editProdId">
+        
+        <button class="btn-submit-ship" id="confirmEditBtn" onclick="submitProductEdit()">SAVE CHANGES</button>
     </div>
 </div>
 
@@ -97,10 +163,26 @@
 
 <script type="module">
 import { auth, db, storage } from "../js/firebase.js";
-import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 const adminOrderList = document.getElementById('adminOrderList');
+const sellerProductList = document.getElementById('sellerProductList');
+
+window.switchTab = function(tabId, btn) {
+    // Hide all tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.classList.remove('active');
+    });
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    // Set active tab button
+    btn.classList.add('active');
+};
 
 auth.onAuthStateChanged(async (user) => {
     if (!user) {
@@ -118,6 +200,7 @@ auth.onAuthStateChanged(async (user) => {
 
         if (userSnap.exists() && userSnap.data().fld_is_seller === true) {
             document.getElementById('sellerDashboard').style.display = 'block';
+            loadProducts(user.uid);
         } else {
             document.getElementById('sellerRegisterContainer').style.display = 'block';
             document.getElementById('btnRegisterSeller').onclick = async () => {
@@ -274,6 +357,99 @@ window.updateStatus = async function(orderId, newStatus) {
         alert("Failed to update status.");
     }
 }
+
+async function loadProducts(sellerId) {
+    try {
+        const q = query(collection(db, "produk"), where("fld_seller_id", "==", sellerId));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            sellerProductList.innerHTML = "<tr><td colspan='6' style='text-align:center;'>You have not listed any products yet.</td></tr>";
+            return;
+        }
+
+        sellerProductList.innerHTML = "";
+        querySnapshot.forEach(docSnap => {
+            const product = docSnap.data();
+            const id = docSnap.id;
+            
+            const escapedDesc = (product.fld_prod_desc || "").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+            const escapedName = (product.fld_prod_name || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+            sellerProductList.innerHTML += `
+                <tr>
+                    <td><img src="${product.fld_prod_image || ''}" alt="Product" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
+                    <td><strong>${product.fld_prod_name || ''}</strong></td>
+                    <td>RM ${parseFloat(product.fld_prod_price).toFixed(2)}</td>
+                    <td>${product.fld_prod_stock || 0}</td>
+                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><small>${product.fld_prod_desc || '-'}</small></td>
+                    <td>
+                        <button class="btn-update" onclick="openEditProductModal('${id}', '${escapedName}', ${product.fld_prod_price}, ${product.fld_prod_stock}, '${escapedDesc}')">Edit</button>
+                        <button class="btn-update" style="background:#d32f2f;" onclick="deleteProduct('${id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (err) {
+        console.error("Error loading products:", err);
+        sellerProductList.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Error loading products.</td></tr>";
+    }
+}
+
+window.openEditProductModal = function(id, name, price, stock, desc) {
+    document.getElementById('editProdId').value = id;
+    document.getElementById('editProdName').value = name;
+    document.getElementById('editProdPrice').value = price;
+    document.getElementById('editProdStock').value = stock;
+    document.getElementById('editProdDesc').value = desc;
+    document.getElementById('editProductModal').style.display = 'block';
+};
+
+window.submitProductEdit = async function() {
+    const id = document.getElementById('editProdId').value;
+    const name = document.getElementById('editProdName').value.trim();
+    const price = parseFloat(document.getElementById('editProdPrice').value);
+    const stock = parseInt(document.getElementById('editProdStock').value);
+    const desc = document.getElementById('editProdDesc').value.trim();
+    const btn = document.getElementById('confirmEditBtn');
+
+    if (!name || isNaN(price) || isNaN(stock)) {
+        alert("Please enter valid name, price, and stock!");
+        return;
+    }
+
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+
+    try {
+        await updateDoc(doc(db, "produk", id), {
+            fld_prod_name: name,
+            fld_prod_price: price,
+            fld_prod_stock: stock,
+            fld_prod_desc: desc
+        });
+
+        alert("Product updated successfully!");
+        location.reload();
+    } catch(err) {
+        console.error("Edit error:", err);
+        alert("Failed to update product.");
+        btn.innerText = "SAVE CHANGES";
+        btn.disabled = false;
+    }
+};
+
+window.deleteProduct = async function(id) {
+    if (!confirm("Are you sure you want to permanently delete this product?")) return;
+    try {
+        await deleteDoc(doc(db, "produk", id));
+        alert("Product deleted successfully!");
+        location.reload();
+    } catch(err) {
+        console.error("Delete error:", err);
+        alert("Failed to delete product.");
+    }
+};
 </script>
 </body>
 </html>
