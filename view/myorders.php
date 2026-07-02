@@ -78,7 +78,7 @@
 
 <script type="module">
 import { auth, db, storage } from "../js/firebase.js";
-import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 const ordersList = document.getElementById('ordersList');
@@ -158,6 +158,11 @@ auth.onAuthStateChanged(async (user) => {
                 `;
             }
 
+            let orderReceivedBtnHTML = "";
+            if (order.fld_status === "Shipped") {
+                orderReceivedBtnHTML = `<button class="btn-done" style="margin: 0 10px 0 0; padding: 8px 15px; font-size: 13px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; display: inline-block;" onclick="confirmOrderReceived('${docSnap.id}', '${order.fld_seller_id}')">Order Dah Sampai 📦</button>`;
+            }
+
             ordersList.innerHTML += `
                 <div class="order-card">
                     <div class="order-header">
@@ -176,6 +181,7 @@ auth.onAuthStateChanged(async (user) => {
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
                         <div>
                             <button class="btn-done" style="margin: 0 10px 0 0; padding: 8px 15px; font-size: 13px; display: inline-block;" onclick="startChatWithUser('${order.fld_seller_id}', 'buyer', 'Hi! I have a question regarding my Order #${docSnap.id}. 🐾')">Chat Seller 💬</button>
+                            ${orderReceivedBtnHTML}
                             <button class="btn-danger" style="margin: 0; padding: 8px 15px; font-size: 13px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; display: inline-block;" onclick="openReportModal('${order.fld_seller_id}')">Report 🚨</button>
                         </div>
                         <strong>Total: RM ${parseFloat(order.fld_total_amount).toFixed(2)}</strong>
@@ -288,6 +294,18 @@ window.submitReport = async function() {
     } finally {
         btn.innerText = "SUBMIT REPORT";
         btn.disabled = false;
+    }
+};
+
+window.confirmOrderReceived = async function(orderId, sellerId) {
+    if (!confirm("Adakah anda pasti pesanan anda telah sampai? Status pesanan akan ditukar ke Delivered.")) return;
+    try {
+        await updateDoc(doc(db, "pesanan", orderId), { fld_status: "Delivered" });
+        alert("Status pesanan dikemaskini ke Delivered! Sila tinggalkan review anda. 🐾");
+        window.location.href = `review.php?orderId=${orderId}&sellerId=${sellerId}&role=buyer`;
+    } catch(err) {
+        console.error("Error updating order status:", err);
+        alert("Gagal mengemaskini status pesanan.");
     }
 };
 </script>

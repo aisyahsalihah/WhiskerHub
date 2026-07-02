@@ -74,12 +74,17 @@
 
             <textarea id="comment" rows="5" placeholder="Write your feedback here..." required></textarea>
 
-            <button type="submit" class="btn-done">SUBMIT REVIEW</button>
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: bold; color: #555;">Attach Photo (Optional)</label>
+                <input type="file" id="reviewImage" accept="image/*" style="width: 100%; padding: 10px; border: 1.5px solid #eee; border-radius: 10px; box-sizing: border-box; font-family: 'Poppins', sans-serif;">
+            </div>
+
+            <button type="submit" class="btn-done" id="submitReviewBtn">SUBMIT REVIEW</button>
         </form>
     </div>
 
 <script type="module">
-import { auth, db } from "../js/firebase.js";
+import { auth, db, storage } from "../js/firebase.js";
 import { 
     collection, 
     addDoc, 
@@ -87,17 +92,24 @@ import {
     doc, 
     getDoc 
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const sitterID = urlParams.get('sitterId');
 const ownerID = urlParams.get('ownerId');
 const bookingID = urlParams.get('bookingId');
+const orderID = urlParams.get('orderId');
+const sellerID = urlParams.get('sellerId');
 const role = urlParams.get('role') || 'owner';
 const reviewForm = document.getElementById('reviewForm');
 
 const subtitle = document.querySelector('.review-card p');
 if (subtitle) {
-    subtitle.innerText = role === 'sitter' ? "How was your experience with this owner?" : "How was your experience with this sitter?";
+    if (role === 'buyer') {
+        subtitle.innerText = "How was your experience with this seller / product?";
+    } else {
+        subtitle.innerText = role === 'sitter' ? "How was your experience with this owner?" : "How was your experience with this sitter?";
+    }
 }
 
 reviewForm.addEventListener('submit', async (e) => {
@@ -126,10 +138,22 @@ reviewForm.addEventListener('submit', async (e) => {
 
         const ratingValue = document.querySelector('input[name="rating"]:checked')?.value;
         const commentValue = document.getElementById('comment').value;
+        const file = document.getElementById('reviewImage').files[0];
+        const btn = document.getElementById('submitReviewBtn');
 
         if (!ratingValue) {
             alert("Please select a rating star!");
             return;
+        }
+
+        btn.innerText = "Submitting...";
+        btn.disabled = true;
+
+        let downloadURL = "";
+        if (file) {
+            const storageRef = ref(storage, `reviews_images/${Date.now()}_${file.name}`);
+            const snapshot = await uploadBytesResumable(storageRef, file);
+            downloadURL = await getDownloadURL(snapshot.ref);
         }
 
         const reviewData = {
@@ -137,23 +161,43 @@ reviewForm.addEventListener('submit', async (e) => {
             fld_user_rating: parseInt(ratingValue),
             fld_user_comment: commentValue,
             createdAt: serverTimestamp(),
-            role: role,
-            bookingID: bookingID
+            role: role
         };
 
-        if (role === 'sitter') {
-            reviewData.ownerID = ownerID;
+        if (downloadURL) {
+            reviewData.fld_review_image = downloadURL;
+        }
+
+        if (role === 'buyer') {
+            reviewData.orderID = orderID;
+            reviewData.sellerID = sellerID;
         } else {
-            reviewData.sitterID = sitterID;
+            reviewData.bookingID = bookingID;
+            if (role === 'sitter') {
+                reviewData.ownerID = ownerID;
+            } else {
+                reviewData.sitterID = sitterID;
+            }
         }
 
         await addDoc(collection(db, "review"), reviewData);
         alert("Thank you for your review, " + actualName + "! 🐾");
-        window.location.href = "history.php";
+        
+        if (role === 'buyer') {
+            window.location.href = "myorders.php";
+        } else {
+            window.location.href = "history.php";
+        }
 
     } catch (error) {
         console.error("Error saving review:", error);
         alert("Failed to submit review. Please try again.");
+    } finally {
+        const btn = document.getElementById('submitReviewBtn');
+        if (btn) {
+            btn.innerText = "SUBMIT REVIEW";
+            btn.disabled = false;
+        }
     }
 });
 </script>
