@@ -434,6 +434,26 @@
                 </div>
             </div>
 
+            <div class="section-header">My Cat's Information 🐾</div>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Cat's Name</label>
+                    <input type="text" id="catName" placeholder="e.g., Oyen">
+                </div>
+                <div class="input-group">
+                    <label>Cat's Age (years)</label>
+                    <input type="number" id="catAge" placeholder="e.g., 2" min="0">
+                </div>
+                <div class="input-group">
+                    <label>Cat's Breed</label>
+                    <input type="text" id="catBreed" placeholder="e.g., Persian">
+                </div>
+                <div class="input-group">
+                    <label>Medical/Dietary Notes</label>
+                    <input type="text" id="catNotes" placeholder="e.g., Sensitive stomach, no chicken">
+                </div>
+            </div>
+
             <div class="section-header">Security</div>
             <div class="input-grid">
                 <div class="input-group">
@@ -614,6 +634,12 @@
                 document.getElementById("bio").value = data.fld_user_desc || "";
             }
 
+            // Load Cat details
+            document.getElementById("catName").value = data.fld_cat_name || "";
+            document.getElementById("catAge").value = data.fld_cat_age || "";
+            document.getElementById("catBreed").value = data.fld_cat_breed || "";
+            document.getElementById("catNotes").value = data.fld_cat_notes || "";
+
             document.getElementById("userRoleBadge").innerText = currentRole === "pengguna" ? "Pet Owner" : "Cat Sitter";
             
             // Load existing avatar if present
@@ -639,6 +665,11 @@
 
         btnSave.disabled = true;
         btnSave.innerText = "Saving...";
+
+        const catName = document.getElementById("catName").value;
+        const catAge = document.getElementById("catAge").value;
+        const catBreed = document.getElementById("catBreed").value;
+        const catNotes = document.getElementById("catNotes").value;
 
         try {
             let avatarUrl = null;
@@ -677,7 +708,15 @@
             // 1. Update Firestore
             const docRef = doc(db, currentRole, user.uid);
             let updateObj = currentRole === "pengguna" 
-                ? { fld_user_name: name, fld_user_phone: phone, fld_user_desc: bio }
+                ? { 
+                    fld_user_name: name, 
+                    fld_user_phone: phone, 
+                    fld_user_desc: bio,
+                    fld_cat_name: catName,
+                    fld_cat_age: catAge,
+                    fld_cat_breed: catBreed,
+                    fld_cat_notes: catNotes
+                  }
                 : { 
                     fld_user_fullname: name, 
                     fld_user_phone: phone, 
@@ -690,7 +729,11 @@
                     fld_user_kadarBayaran: document.getElementById("rate_daycare").value || "0",
                     fld_user_jenisPerkhidmatan: services,
                     fld_user_gallery: finalGalleryUrls,
-                    fld_user_unavailableDates: unavailableDates
+                    fld_user_unavailableDates: unavailableDates,
+                    fld_cat_name: catName,
+                    fld_cat_age: catAge,
+                    fld_cat_breed: catBreed,
+                    fld_cat_notes: catNotes
                   };
             
             if (avatarUrl) {

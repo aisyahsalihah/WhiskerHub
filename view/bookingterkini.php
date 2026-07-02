@@ -278,6 +278,38 @@ auth.onAuthStateChanged(async (user) => {
                 ratingDisplay = "⭐ -";
             }
 
+            // Fetch owner's cat details if current user is the sitter
+            let catInfoHTML = "";
+            if (booking.fld_penjaga_ID === user.uid) {
+                let ownerSnap = await getDoc(doc(db, "pengguna", booking.fld_pemilik_ID));
+                if (!ownerSnap.exists()) {
+                    ownerSnap = await getDoc(doc(db, "penjaga_kucing", booking.fld_pemilik_ID));
+                }
+                if (ownerSnap.exists()) {
+                    const ownerData = ownerSnap.data();
+                    if (ownerData.fld_cat_name) {
+                        catInfoHTML = `
+                            <tr>
+                                <td><strong>CAT DETAILS:</strong></td>
+                                <td>
+                                    <strong>Name:</strong> ${ownerData.fld_cat_name}<br>
+                                    <strong>Age:</strong> ${ownerData.fld_cat_age || '-'} year(s)<br>
+                                    <strong>Breed:</strong> ${ownerData.fld_cat_breed || '-'}<br>
+                                    <strong>Notes:</strong> ${ownerData.fld_cat_notes || '-'}
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        catInfoHTML = `
+                            <tr>
+                                <td><strong>CAT DETAILS:</strong></td>
+                                <td>No cat details provided by owner.</td>
+                            </tr>
+                        `;
+                    }
+                }
+            }
+
             const card = document.createElement("div");
             card.className = "booking-box";
             card.innerHTML = `
@@ -290,6 +322,7 @@ auth.onAuthStateChanged(async (user) => {
                         <td><strong>${displayRole}:</strong></td>
                         <td>${displayName} <span style="color: #ff9800; font-weight: bold; font-size: 13px; margin-left: 8px;">${ratingDisplay}</span></td>
                     </tr>
+                    ${catInfoHTML}
                     <tr>
                         <td><strong>SERVICE:</strong></td>
                         <td>${booking.fld_tempahan_servis || "-"}</td>
