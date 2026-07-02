@@ -48,7 +48,6 @@
     <div class="logo">WhiskerHub Admin</div>
     <div class="nav-links">
         <a href="admin_dashboard.php" class="active">Admin Dashboard</a>
-        <a href="admin_shop.php">Shop Orders</a>
         <a href="#" id="logoutBtn">Logout</a>
     </div>
 </div>

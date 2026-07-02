@@ -16,6 +16,16 @@
         .status-Processing { background: #fff3cd; color: #856404; }
         .status-Shipped { background: #cce5ff; color: #004085; }
         .status-Delivered { background: #d4edda; color: #155724; }
+
+        /* Modal Styles for Report */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 10px; width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .close { float: right; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa; }
+        .close:hover { color: #000; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; margin-bottom: 5px; font-weight: bold; }
+        .form-group input[type="text"], .form-group input[type="file"], .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .btn-submit-report { width: 100%; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -37,9 +47,39 @@
     </div>
 </div>
 
+<!-- Report Modal -->
+<div id="reportModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('reportModal').style.display='none'">&times;</span>
+        <h2 style="color: #e74c3c;">Report Issue</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Please provide proof so our admin can take action.</p>
+        
+        <div class="form-group">
+            <label>Issue Type</label>
+            <select id="reportType">
+                <option value="Scam / Fraud">Scam / Fraud</option>
+                <option value="Incorrect Item">Incorrect Item</option>
+                <option value="Damaged Item">Damaged Item</option>
+                <option value="Non-delivery">Non-delivery</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="reportDesc" rows="3" placeholder="Explain what happened..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Proof (Image/Screenshot)</label>
+            <input type="file" id="reportProof" accept="image/*">
+        </div>
+        <button class="btn-submit-report" id="submitReportBtn" onclick="submitReport()">SUBMIT REPORT</button>
+    </div>
+</div>
+
 <script type="module">
-import { auth, db } from "../js/firebase.js";
-import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { auth, db, storage } from "../js/firebase.js";
+import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 const ordersList = document.getElementById('ordersList');
 
@@ -134,7 +174,10 @@ auth.onAuthStateChanged(async (user) => {
                     </div>
                     ${shippingHTML}
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
-                        <button class="btn-done" style="margin: 0; padding: 8px 15px; font-size: 13px;" onclick="startChatWithUser('${order.fld_seller_id}', 'buyer', 'Hi! I have a question regarding my Order #${docSnap.id}. 🐾')">Chat Seller 💬</button>
+                        <div>
+                            <button class="btn-done" style="margin: 0 10px 0 0; padding: 8px 15px; font-size: 13px; display: inline-block;" onclick="startChatWithUser('${order.fld_seller_id}', 'buyer', 'Hi! I have a question regarding my Order #${docSnap.id}. 🐾')">Chat Seller 💬</button>
+                            <button class="btn-danger" style="margin: 0; padding: 8px 15px; font-size: 13px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; display: inline-block;" onclick="openReportModal('${order.fld_seller_id}')">Report 🚨</button>
+                        </div>
                         <strong>Total: RM ${parseFloat(order.fld_total_amount).toFixed(2)}</strong>
                     </div>
                 </div>
@@ -147,7 +190,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-import { serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
 
 window.startChatWithUser = async function(otherUserId, role, defaultMsg) {
     const user = auth.currentUser;
@@ -191,6 +234,60 @@ window.startChatWithUser = async function(otherUserId, role, defaultMsg) {
     } catch(err) {
         console.error("Error starting chat:", err);
         alert("Failed to start chat room.");
+    }
+};
+
+let currentReportedUserId = null;
+
+window.openReportModal = function(otherUserId) {
+    if (!otherUserId) {
+        alert("Seller information is not available to report.");
+        return;
+    }
+    currentReportedUserId = otherUserId;
+    document.getElementById("reportType").value = "Scam / Fraud";
+    document.getElementById("reportDesc").value = "";
+    document.getElementById("reportProof").value = "";
+    document.getElementById("reportModal").style.display = "block";
+};
+
+window.submitReport = async function() {
+    const type = document.getElementById("reportType").value;
+    const desc = document.getElementById("reportDesc").value;
+    const file = document.getElementById("reportProof").files[0];
+    const btn = document.getElementById("submitReportBtn");
+
+    if (!desc || !file) {
+        alert("Please provide a description and upload a proof image.");
+        return;
+    }
+
+    btn.innerText = "Submitting...";
+    btn.disabled = true;
+
+    try {
+        const storageRef = ref(storage, `reports_proof/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytesResumable(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        await addDoc(collection(db, "reports"), {
+            reporterId: auth.currentUser.uid,
+            reportedUserId: currentReportedUserId,
+            type: type,
+            description: desc,
+            proofImage: downloadURL,
+            status: "Pending",
+            createdAt: serverTimestamp()
+        });
+
+        alert("Report submitted successfully. Admin will review this issue.");
+        document.getElementById("reportModal").style.display = "none";
+    } catch (err) {
+        console.error("Report error:", err);
+        alert("Failed to submit report.");
+    } finally {
+        btn.innerText = "SUBMIT REPORT";
+        btn.disabled = false;
     }
 };
 </script>
