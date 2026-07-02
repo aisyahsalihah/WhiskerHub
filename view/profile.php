@@ -759,6 +759,12 @@
         btnSave.disabled = true;
         btnSave.innerText = "Saving...";
 
+        // Auto-add cat to list if fields are filled but button wasn't clicked
+        const newCatName = document.getElementById("newCatName").value.trim();
+        if (newCatName) {
+            window.addCatToList();
+        }
+
         // Upload any new cat images and construct final cats list
         let finalCats = [];
         try {
