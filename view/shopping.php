@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/shopstyle.css">
 
+    <style>
+        .modal-left {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 768px) {
+            .modal-left {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -40,7 +52,16 @@
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-body">
-            <img id="modalImg" src="" alt="Product">
+            <div class="modal-left">
+                <img id="modalImg" src="" alt="Product" style="width: 100%;">
+                
+                <div id="productReviewsSection" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; text-align: left;">
+                    <h3 style="font-size: 15px; margin-bottom: 10px; color: #333; font-family: 'Poppins', sans-serif;">Shop Reviews 🐾</h3>
+                    <div id="reviewsList" style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
+                        <p style="font-size: 12px; color: #888;">Loading reviews...</p>
+                    </div>
+                </div>
+            </div>
             <div class="modal-text">
                 <h2 id="modalTitle"></h2>
                 <p style="font-size: 13px; color: #888; margin-top: -10px; margin-bottom: 15px;">Shop: <strong id="modalSellerName" style="color: #333;">Loading...</strong></p>
@@ -52,13 +73,6 @@
                 
                 <button class="btn-add-cart" onclick="addToCart()">Add to Cart 🛒</button>
                 <button class="btn-add-cart" id="btnChatSeller" style="background: #ffb6c1; color: #333; margin-top: 10px;" onclick="chatWithSeller()">Chat Seller 💬</button>
-                
-                <div id="productReviewsSection" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; text-align: left;">
-                    <h3 style="font-size: 15px; margin-bottom: 10px; color: #333; font-family: 'Poppins', sans-serif;">Shop Reviews 🐾</h3>
-                    <div id="reviewsList" style="max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                        <p style="font-size: 12px; color: #888;">Loading reviews...</p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
