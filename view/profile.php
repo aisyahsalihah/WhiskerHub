@@ -434,24 +434,38 @@
                 </div>
             </div>
 
-            <div class="section-header">My Cat's Information 🐾</div>
-            <div class="input-grid">
-                <div class="input-group">
-                    <label>Cat's Name</label>
-                    <input type="text" id="catName" placeholder="e.g., Oyen">
+            <div class="section-header">My Cats 🐾</div>
+            <p style="font-size: 13px; color: #aaa; margin-bottom: 14px;">Manage your cat profiles below. You can add multiple cats.</p>
+            
+            <div id="catsListContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;">
+                <p style="font-size: 13px; color: #aaa;">No cats added yet. Add your cats below!</p>
+            </div>
+
+            <div style="background: #fff5f6; border: 1px dashed #ffb6c1; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                <h4 style="margin-top: 0; margin-bottom: 15px; color: #ff7a8a; font-size: 14px;">Add a Cat</h4>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Cat's Name</label>
+                        <input type="text" id="newCatName" placeholder="e.g., Oyen">
+                    </div>
+                    <div class="input-group">
+                        <label>Cat's Age (years)</label>
+                        <input type="number" id="newCatAge" placeholder="e.g., 2" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Cat's Breed</label>
+                        <input type="text" id="newCatBreed" placeholder="e.g., Persian">
+                    </div>
+                    <div class="input-group">
+                        <label>Medical/Dietary Notes</label>
+                        <input type="text" id="newCatNotes" placeholder="e.g., Sensitive stomach">
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Cat's Photo (Optional)</label>
+                        <input type="file" id="newCatPhoto" accept="image/*">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Cat's Age (years)</label>
-                    <input type="number" id="catAge" placeholder="e.g., 2" min="0">
-                </div>
-                <div class="input-group">
-                    <label>Cat's Breed</label>
-                    <input type="text" id="catBreed" placeholder="e.g., Persian">
-                </div>
-                <div class="input-group">
-                    <label>Medical/Dietary Notes</label>
-                    <input type="text" id="catNotes" placeholder="e.g., Sensitive stomach, no chicken">
-                </div>
+                <button type="button" class="btn" style="background: #ffb6c1; color: white; margin-top: 15px; width: 100%;" onclick="addCatToList()">Add Cat to List</button>
             </div>
 
             <div class="section-header">Security</div>
@@ -481,6 +495,7 @@
     import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
     let currentRole = "pengguna";
+    let myCats = []; // Array of { name, age, breed, notes, photoUrl, photoFile }
 
     // galleryImages: array of { type: 'url'|'file', value: string|File, preview: string }
     let galleryImages = [];
@@ -505,6 +520,78 @@
         unavailableDates = unavailableDates.filter(d => d !== dateStr);
         renderBlockedDates();
     };
+
+    window.addCatToList = function() {
+        const name = document.getElementById("newCatName").value.trim();
+        const age = document.getElementById("newCatAge").value.trim();
+        const breed = document.getElementById("newCatBreed").value.trim();
+        const notes = document.getElementById("newCatNotes").value.trim();
+        const photoFile = document.getElementById("newCatPhoto").files[0];
+
+        if (!name) {
+            alert("Cat's Name is required.");
+            return;
+        }
+
+        let photoUrl = "";
+        if (photoFile) {
+            photoUrl = URL.createObjectURL(photoFile);
+        }
+
+        myCats.push({
+            name: name,
+            age: age,
+            breed: breed,
+            notes: notes,
+            photoUrl: photoUrl,
+            photoFile: photoFile
+        });
+
+        // Clear inputs
+        document.getElementById("newCatName").value = "";
+        document.getElementById("newCatAge").value = "";
+        document.getElementById("newCatBreed").value = "";
+        document.getElementById("newCatNotes").value = "";
+        document.getElementById("newCatPhoto").value = "";
+
+        renderCatsList();
+    };
+
+    window.removeCatFromList = function(index) {
+        myCats.splice(index, 1);
+        renderCatsList();
+    };
+
+    function renderCatsList() {
+        const container = document.getElementById("catsListContainer");
+        if (!container) return;
+
+        container.innerHTML = "";
+        
+        if (myCats.length === 0) {
+            container.innerHTML = `<p style="font-size: 13px; color: #aaa;">No cats added yet. Add your cats below!</p>`;
+            return;
+        }
+
+        myCats.forEach((cat, index) => {
+            const catCard = document.createElement("div");
+            catCard.style = "display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #f0f0f0; border-radius: 12px; padding: 12px 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);";
+            
+            let photoHTML = cat.photoUrl ? `<img src="${cat.photoUrl}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;">` : `<div style="width: 50px; height: 50px; border-radius: 50%; background: #eee; margin-right: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🐱</div>`;
+            
+            catCard.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    ${photoHTML}
+                    <div style="font-size: 13px; color: #444;">
+                        <strong style="font-size: 15px; color: #ff7a8a;">${cat.name}</strong> (${cat.breed || 'Unknown Breed'}, ${cat.age || '0'} y/o)<br>
+                        <span style="color: #888;">Notes: ${cat.notes || 'None'}</span>
+                    </div>
+                </div>
+                <button type="button" class="btn" style="background: #e74c3c; color: white; padding: 6px 12px; font-size: 12px; border-radius: 8px; margin-left: 10px; width: auto;" onclick="removeCatFromList(${index})">Remove</button>
+            `;
+            container.appendChild(catCard);
+        });
+    }
 
     function renderBlockedDates() {
         const list = document.getElementById("blockedDatesList");
@@ -634,11 +721,17 @@
                 document.getElementById("bio").value = data.fld_user_desc || "";
             }
 
-            // Load Cat details
-            document.getElementById("catName").value = data.fld_cat_name || "";
-            document.getElementById("catAge").value = data.fld_cat_age || "";
-            document.getElementById("catBreed").value = data.fld_cat_breed || "";
-            document.getElementById("catNotes").value = data.fld_cat_notes || "";
+            // Load Cat details list
+            const rawCats = data.fld_cats || [];
+            myCats = rawCats.map(cat => ({
+                name: cat.name || "",
+                age: cat.age || "",
+                breed: cat.breed || "",
+                notes: cat.notes || "",
+                photoUrl: cat.photoUrl || "",
+                photoFile: null
+            }));
+            renderCatsList();
 
             document.getElementById("userRoleBadge").innerText = currentRole === "pengguna" ? "Pet Owner" : "Cat Sitter";
             
@@ -666,11 +759,8 @@
         btnSave.disabled = true;
         btnSave.innerText = "Saving...";
 
-        const catName = document.getElementById("catName").value;
-        const catAge = document.getElementById("catAge").value;
-        const catBreed = document.getElementById("catBreed").value;
-        const catNotes = document.getElementById("catNotes").value;
-
+        // Upload any new cat images and construct final cats list
+        let finalCats = [];
         try {
             let avatarUrl = null;
 
@@ -699,6 +789,32 @@
                 }
             }
 
+            // Upload cat photos
+            for (let i = 0; i < myCats.length; i++) {
+                const cat = myCats[i];
+                if (cat.photoFile) {
+                    const catImgRef = ref(storage, `cats/${user.uid}_${Date.now()}_${i}_${cat.photoFile.name}`);
+                    const snap = await uploadBytes(catImgRef, cat.photoFile);
+                    const downloadUrl = await getDownloadURL(snap.ref);
+                    
+                    finalCats.push({
+                        name: cat.name,
+                        age: cat.age,
+                        breed: cat.breed,
+                        notes: cat.notes,
+                        photoUrl: downloadUrl
+                    });
+                } else {
+                    finalCats.push({
+                        name: cat.name,
+                        age: cat.age,
+                        breed: cat.breed,
+                        notes: cat.notes,
+                        photoUrl: cat.photoUrl || ""
+                    });
+                }
+            }
+
             // Get selected services
             let services = [];
             document.querySelectorAll(".service-checkbox:checked").forEach(cb => {
@@ -712,10 +828,7 @@
                     fld_user_name: name, 
                     fld_user_phone: phone, 
                     fld_user_desc: bio,
-                    fld_cat_name: catName,
-                    fld_cat_age: catAge,
-                    fld_cat_breed: catBreed,
-                    fld_cat_notes: catNotes
+                    fld_cats: finalCats
                   }
                 : { 
                     fld_user_fullname: name, 
@@ -730,10 +843,7 @@
                     fld_user_jenisPerkhidmatan: services,
                     fld_user_gallery: finalGalleryUrls,
                     fld_user_unavailableDates: unavailableDates,
-                    fld_cat_name: catName,
-                    fld_cat_age: catAge,
-                    fld_cat_breed: catBreed,
-                    fld_cat_notes: catNotes
+                    fld_cats: finalCats
                   };
             
             if (avatarUrl) {

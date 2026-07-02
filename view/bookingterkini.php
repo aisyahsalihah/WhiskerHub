@@ -287,7 +287,30 @@ auth.onAuthStateChanged(async (user) => {
                 }
                 if (ownerSnap.exists()) {
                     const ownerData = ownerSnap.data();
-                    if (ownerData.fld_cat_name) {
+                    const cats = ownerData.fld_cats || [];
+                    
+                    if (cats.length > 0) {
+                        let catsListHTML = cats.map(cat => {
+                            let imgHTML = cat.photoUrl ? `<img src="${cat.photoUrl}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 10px; border: 1.5px solid #f0f0f0;">` : `<span style="font-size: 20px; margin-right: 10px; vertical-align: middle;">🐱</span>`;
+                            return `
+                                <div style="margin-bottom: 10px; display: flex; align-items: center; background: #fafafa; padding: 8px 12px; border-radius: 8px; border: 1px solid #f0f0f0;">
+                                    ${imgHTML}
+                                    <div style="font-size: 12px; line-height: 1.4;">
+                                        <strong>${cat.name}</strong> (${cat.breed || 'Unknown'}, ${cat.age || '0'} y/o)<br>
+                                        <span style="color:#666;">Notes: ${cat.notes || 'None'}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join("");
+                        
+                        catInfoHTML = `
+                            <tr>
+                                <td><strong>CAT DETAILS:</strong></td>
+                                <td>${catsListHTML}</td>
+                            </tr>
+                        `;
+                    } else if (ownerData.fld_cat_name) {
+                        // Backwards compatibility fallback for single cat
                         catInfoHTML = `
                             <tr>
                                 <td><strong>CAT DETAILS:</strong></td>
