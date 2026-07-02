@@ -160,7 +160,7 @@ auth.onAuthStateChanged(async (user) => {
 
             let orderReceivedBtnHTML = "";
             if (order.fld_status === "Shipped") {
-                orderReceivedBtnHTML = `<button class="btn-done" style="margin: 0 10px 0 0; padding: 8px 15px; font-size: 13px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; display: inline-block;" onclick="confirmOrderReceived('${docSnap.id}', '${order.fld_seller_id}')">Order Dah Sampai 📦</button>`;
+                orderReceivedBtnHTML = `<button class="btn-done" style="margin: 0 10px 0 0; padding: 8px 15px; font-size: 13px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; display: inline-block;" onclick="confirmOrderReceived('${docSnap.id}', '${order.fld_seller_id}')">Order Received 📦</button>`;
             }
 
             ordersList.innerHTML += `
@@ -298,14 +298,14 @@ window.submitReport = async function() {
 };
 
 window.confirmOrderReceived = async function(orderId, sellerId) {
-    if (!confirm("Adakah anda pasti pesanan anda telah sampai? Status pesanan akan ditukar ke Delivered.")) return;
+    if (!confirm("Are you sure your order has arrived? The order status will be updated to Delivered.")) return;
     try {
         await updateDoc(doc(db, "pesanan", orderId), { fld_status: "Delivered" });
-        alert("Status pesanan dikemaskini ke Delivered! Sila tinggalkan review anda. 🐾");
+        alert("Order status updated to Delivered! Please leave your review. 🐾");
         window.location.href = `review.php?orderId=${orderId}&sellerId=${sellerId}&role=buyer`;
     } catch(err) {
         console.error("Error updating order status:", err);
-        alert("Gagal mengemaskini status pesanan.");
+        alert("Failed to update order status.");
     }
 };
 </script>
