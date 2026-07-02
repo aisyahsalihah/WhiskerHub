@@ -52,6 +52,13 @@
                 
                 <button class="btn-add-cart" onclick="addToCart()">Add to Cart 🛒</button>
                 <button class="btn-add-cart" id="btnChatSeller" style="background: #ffb6c1; color: #333; margin-top: 10px;" onclick="chatWithSeller()">Chat Seller 💬</button>
+                
+                <div id="productReviewsSection" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; text-align: left;">
+                    <h3 style="font-size: 15px; margin-bottom: 10px; color: #333; font-family: 'Poppins', sans-serif;">Shop Reviews 🐾</h3>
+                    <div id="reviewsList" style="max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                        <p style="font-size: 12px; color: #888;">Loading reviews...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -59,7 +66,7 @@
 
 <script type="module">
 import { auth, db } from "../js/firebase.js";
-import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, setDoc, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const productGrid = document.getElementById('productGrid');
 let allProducts = [];
@@ -132,6 +139,9 @@ window.openModal = async function(id, title, price, desc, img, sellerId) {
     document.getElementById('modalDesc').innerText = desc;
     document.getElementById('modalImg').src = img || 'https://via.placeholder.com/400';
     document.getElementById('productModal').style.display = "block";
+    
+    // Load reviews
+    loadProductReviews(sellerId);
 
     const sellerNameEl = document.getElementById('modalSellerName');
     if (sellerNameEl) sellerNameEl.innerText = "Loading...";
@@ -268,7 +278,58 @@ window.chatWithSeller = async function() {
 
 // Jalankan load data
 loadProducts();
-</script>
 
+async function loadProductReviews(sellerId) {
+    const reviewsList = document.getElementById('reviewsList');
+    if (!reviewsList) return;
+    
+    if (!sellerId || sellerId === 'unknown') {
+        reviewsList.innerHTML = "<p style='font-size: 12px; color: #888;'>No reviews found.</p>";
+        return;
+    }
+
+    try {
+        reviewsList.innerHTML = "<p style='font-size: 12px; color: #888;'>Loading reviews...</p>";
+        const q = query(
+            collection(db, "review"),
+            where("sellerID", "==", sellerId)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            reviewsList.innerHTML = "<p style='font-size: 12px; color: #888;'>No reviews yet for this seller.</p>";
+            return;
+        }
+
+        reviewsList.innerHTML = "";
+        
+        const docs = querySnapshot.docs.sort((a,b) => {
+            const timeA = a.data().createdAt?.seconds || 0;
+            const timeB = b.data().createdAt?.seconds || 0;
+            return timeB - timeA;
+        });
+
+        docs.forEach(docSnap => {
+            const r = docSnap.data();
+            let stars = "★".repeat(r.fld_user_rating) + "☆".repeat(5 - r.fld_user_rating);
+            let imgHTML = r.fld_review_image ? `<br><a href="${r.fld_review_image}" target="_blank"><img src="${r.fld_review_image}" style="max-width: 80px; border-radius: 5px; margin-top: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></a>` : "";
+            
+            reviewsList.innerHTML += `
+                <div style="border-bottom: 1px solid #f9f9f9; padding: 10px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 12px; color: #333;">${r.fld_user_name || 'Anonymous'}</strong>
+                        <span style="color: #f39c12; font-size: 11px;">${stars}</span>
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">${r.fld_user_comment || ''}</p>
+                    ${imgHTML}
+                </div>
+            `;
+        });
+    } catch(err) {
+        console.error("Error loading reviews:", err);
+        reviewsList.innerHTML = "<p style='font-size: 12px; color: #888;'>Error loading reviews.</p>";
+    }
+}
+</script>
 </body>
 </html>
