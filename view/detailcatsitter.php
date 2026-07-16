@@ -130,7 +130,7 @@
         <div id="reviewList"></div>
     </div>
 
-    <a id="bookingBtn" class="btn-tempah-full">TEMPAH SEKARANG</a>
+    <a id="bookingBtn" class="btn-tempah-full">BOOK NOW</a>
 
 </div>
 
