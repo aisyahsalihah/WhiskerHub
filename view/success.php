@@ -251,7 +251,7 @@ auth.onAuthStateChanged(async (user) => {
 
                 // 4. INITIALIZE AUTOMATIC CHAT ROOM INSIDE message.php LIST
                 // Create unique chat room ID combining user ID and sitter ID
-                const chatRoomId = `${userId}_${sitterId}`;
+                const chatRoomId = [userId, sitterId].sort().join('_');
 
                 // Arrange participants array according to message.php query requirements
                 const chatRoomData = {

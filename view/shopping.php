@@ -260,7 +260,7 @@ window.chatWithSeller = async function() {
     const productName = document.getElementById('modalTitle').innerText;
     const productPrice = document.getElementById('modalPrice').innerText;
     const defaultMsg = `Hi! I am interested in your product: ${productName} (${productPrice}). 🐾`;
-    const chatRoomId = `${user.uid}_${sellerId}`;
+    const chatRoomId = [user.uid, sellerId].sort().join('_');
 
     try {
         const chatRoomData = {

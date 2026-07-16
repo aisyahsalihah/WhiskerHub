@@ -470,9 +470,9 @@ window.startChatWithUser = async function(otherUserId, role, defaultMsg) {
         return;
     }
 
-    const buyerId = role === 'seller' ? user.uid : otherUserId;
-    const sellerId = role === 'seller' ? otherUserId : user.uid;
-    const chatRoomId = `${buyerId}_${sellerId}`;
+    const buyerId = role === 'seller' ? otherUserId : user.uid;
+    const sellerId = role === 'seller' ? user.uid : otherUserId;
+    const chatRoomId = [user.uid, otherUserId].sort().join('_');
 
     try {
         const chatRoomData = {

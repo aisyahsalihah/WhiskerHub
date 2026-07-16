@@ -239,14 +239,39 @@ async function loadChats() {
         contactList.innerHTML = "";
         let totalUnread = 0;
 
+        const chatMap = new Map();
+
         for (const chatDoc of snapshot.docs) {
             const data = chatDoc.data();
             const otherUserId = data.participants.find(id => id !== currentUser.uid);
+            if (!otherUserId) continue;
             
             // Check unread for global red dot
             if (data.lastSenderId !== currentUser.uid && data.isRead === false) {
                 totalUnread++;
             }
+
+            const existing = chatMap.get(otherUserId);
+            const currentTime = data.lastMessageTime ? (data.lastMessageTime.toMillis ? data.lastMessageTime.toMillis() : new Date(data.lastMessageTime).getTime()) : 0;
+            const existingTime = existing ? (existing.data.lastMessageTime ? (existing.data.lastMessageTime.toMillis ? existing.data.lastMessageTime.toMillis() : new Date(existing.data.lastMessageTime).getTime()) : 0) : 0;
+
+            if (!existing || currentTime > existingTime) {
+                chatMap.set(otherUserId, {
+                    id: chatDoc.id,
+                    data: data
+                });
+            }
+        }
+
+        const sortedChats = Array.from(chatMap.entries()).sort((a, b) => {
+            const timeA = a[1].data.lastMessageTime ? (a[1].data.lastMessageTime.toMillis ? a[1].data.lastMessageTime.toMillis() : new Date(a[1].data.lastMessageTime).getTime()) : 0;
+            const timeB = b[1].data.lastMessageTime ? (b[1].data.lastMessageTime.toMillis ? b[1].data.lastMessageTime.toMillis() : new Date(b[1].data.lastMessageTime).getTime()) : 0;
+            return timeB - timeA;
+        });
+
+        for (const [otherUserId, chatInfo] of sortedChats) {
+            const chatDocId = chatInfo.id;
+            const data = chatInfo.data;
 
             let otherUserName = "User";
             const userSnap = await getDoc(doc(db, "pengguna", otherUserId));
@@ -260,8 +285,8 @@ async function loadChats() {
             }
 
             const contactDiv = document.createElement("div");
-            contactDiv.className = `contact ${currentChatId === chatDoc.id ? 'active' : ''}`;
-            contactDiv.onclick = () => window.openChat(chatDoc.id, otherUserName, otherUserId);
+            contactDiv.className = `contact ${currentChatId === chatDocId ? 'active' : ''}`;
+            contactDiv.onclick = () => window.openChat(chatDocId, otherUserName, otherUserId);
 
             contactDiv.innerHTML = `
                 <div class="contact-name">${otherUserName}</div>
