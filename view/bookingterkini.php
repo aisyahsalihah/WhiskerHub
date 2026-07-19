@@ -424,17 +424,33 @@ auth.onAuthStateChanged(async (user) => {
                     </button>`;
                 
                 if (isSitter) {
-                    card.innerHTML += `
-                        <button class="btn-done" style="background:#27ae60; flex:2; min-width:120px; padding:10px 5px; font-size:11px;" onclick="openCompletionModal('${bId}', '${otherPartyId}')">
-                             UPLOAD PROOF
-                        </button>
-                    `;
+                    if (status === "Unpaid") {
+                        card.innerHTML += `
+                            <div style="flex:2; min-width:120px; padding:10px 5px; font-size:11px; text-align:center; color:#e65100; background:#fff3e0; border-radius:5px; border:1px dashed #ffe0b2; display:flex; align-items:center; justify-content:center;">
+                                Awaiting Payment
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML += `
+                            <button class="btn-done" style="background:#27ae60; flex:2; min-width:120px; padding:10px 5px; font-size:11px;" onclick="openCompletionModal('${bId}', '${otherPartyId}')">
+                                 UPLOAD PROOF
+                            </button>
+                        `;
+                    }
                 } else if (isOwner) {
-                    card.innerHTML += `
-                        <div style="flex:2; min-width:120px; padding:10px 5px; font-size:11px; text-align:center; color:#777; background:#f0f0f0; border-radius:5px; border:1px dashed #ccc; display:flex; align-items:center; justify-content:center;">
-                            Waiting Proof
-                        </div>
-                    `;
+                    if (status === "Unpaid") {
+                        card.innerHTML += `
+                            <button class="btn-done" style="background:#ff9800; flex:2; min-width:120px; padding:10px 5px; font-size:11px; font-weight:bold; color:white;" onclick="window.location.assign('payment.php?booking_id=${bId}&amount=${booking.fld_tempahan_jumlah}&email=${encodeURIComponent(user.email)}')">
+                                 PAY NOW 💳
+                            </button>
+                        `;
+                    } else {
+                        card.innerHTML += `
+                            <div style="flex:2; min-width:120px; padding:10px 5px; font-size:11px; text-align:center; color:#777; background:#f0f0f0; border-radius:5px; border:1px dashed #ccc; display:flex; align-items:center; justify-content:center;">
+                                Waiting Proof
+                            </div>
+                        `;
+                    }
                 }
 
                 card.innerHTML += `
