@@ -29,25 +29,193 @@ $customer_email = $_GET['email'] ?? '';
 // Email Sending Logic
 $email_status = "";
 
-if ($booking_id !== 'unknown' && !empty($customer_email)) {
-    $subject = "WhiskerHub Invoice - Booking #$booking_id";
-    $body = "
-        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px;'>
-            <h2 style='color: #ff9800;'>WhiskerHub</h2>
-            <hr style='border: 0; border-top: 1px solid #eee;'>
-            <p>Hello Cat Lover! 🐾</p>
-            <p>Your payment for booking <strong>#$booking_id</strong> has been successfully received.</p>
-            <p>Your cat sitter will contact you shortly, or you can start a chat directly within the application.</p>
-            <br>
-            <p>Thank you for choosing WhiskerHub!</p>
-        </div>
-    ";
+// Helper functions to fetch Firestore data via REST API
+if (!function_exists('getFirestoreDoc')) {
+    function getFirestoreDoc($collection, $docId) {
+        $url = "https://firestore.googleapis.com/v1/projects/whiskerhub-67889/databases/(default)/documents/" . urlencode($collection) . "/" . urlencode($docId);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($httpCode === 200) {
+            $json = json_decode($response, true);
+            $fields = [];
+            if (isset($json['fields'])) {
+                foreach ($json['fields'] as $key => $val) {
+                    if (isset($val['stringValue'])) {
+                        $fields[$key] = $val['stringValue'];
+                    } elseif (isset($val['integerValue'])) {
+                        $fields[$key] = (int)$val['integerValue'];
+                    } elseif (isset($val['doubleValue'])) {
+                        $fields[$key] = (double)$val['doubleValue'];
+                    } elseif (isset($val['booleanValue'])) {
+                        $fields[$key] = (bool)$val['booleanValue'];
+                    }
+                }
+            }
+            return $fields;
+        }
+        return null;
+    }
+}
 
-    $sent = sendBrevoEmail($customer_email, '', $subject, $body, 'aisyahsalihah22@gmail.com', 'WhiskerHub System');
-    if ($sent) {
-        $email_status = "Official invoice has been sent to your email ($customer_email).";
+if ($booking_id !== 'unknown' && !empty($customer_email)) {
+    // 1. Fetch details from Firestore REST API
+    $bookingData = getFirestoreDoc("tempahan", $booking_id);
+    if ($bookingData) {
+        $sitter_id = $bookingData['fld_penjaga_ID'] ?? '';
+        $owner_id = $bookingData['fld_pemilik_ID'] ?? '';
+        
+        $sitterData = $sitter_id ? getFirestoreDoc("penjaga_kucing", $sitter_id) : null;
+        $ownerData = $owner_id ? getFirestoreDoc("pengguna", $owner_id) : null;
+        
+        $sitter_name = $sitterData['fld_user_fullname'] ?? 'Cat Sitter';
+        $sitter_mail = $sitterData['fld_user_email'] ?? '';
+        $owner_name = $ownerData['fld_user_name'] ?? 'Cat Owner';
+        
+        $service = ucfirst(str_replace('_', ' ', $bookingData['fld_tempahan_servis'] ?? ''));
+        $start_date = $bookingData['fld_tempahan_tkhMula'] ?? '-';
+        $start_time = $bookingData['fld_tempahan_masaMula'] ?? '-';
+        $end_date = $bookingData['fld_tempahan_tkhTamat'] ?? '-';
+        $end_time = $bookingData['fld_tempahan_masaTamat'] ?? '-';
+        $cats = $bookingData['fld_tempahan_bilKucing'] ?? 1;
+        $location = $bookingData['fld_tempahan_alamat'] ?? '-';
+        $amount = number_format($bookingData['fld_tempahan_jumlah'] ?? 0, 2);
+
+        // 2. Format English Invoice Email for Cat Owner
+        $subject_owner = "WhiskerHub Invoice - Booking #$booking_id";
+        $body_owner = "
+            <div style='font-family: \"Segoe UI\", Arial, sans-serif; padding: 30px; background-color: #f7f9fa; max-width: 600px; margin: auto; border-radius: 12px;'>
+                <div style='text-align: center; margin-bottom: 20px;'>
+                    <h2 style='color: #ff9800; font-size: 28px; margin: 0; font-weight: 800;'>🐾 WHISKERHUB</h2>
+                    <p style='color: #777; margin: 5px 0 0 0; font-size: 14px;'>Booking Payment Invoice</p>
+                </div>
+                <div style='background: white; padding: 25px; border-radius: 10px; border-top: 5px solid #ff9800;'>
+                    <p style='font-size: 16px; color: #333; margin-top: 0;'>Hello, <strong>$owner_name</strong>! Your booking has been successfully confirmed and paid.</p>
+                    
+                    <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                        <tr>
+                            <td style='padding: 8px 0; color: #777; font-size: 14px;'>Booking ID:</td>
+                            <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>#$booking_id</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 0; color: #777; font-size: 14px;'>Cat Sitter:</td>
+                            <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$sitter_name</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 0; color: #777; font-size: 14px;'>Service Type:</td>
+                            <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$service</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 0; color: #777; font-size: 14px;'>Dates:</td>
+                            <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$start_date to $end_date</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 0; color: #777; font-size: 14px;'>Start Time:</td>
+                            <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$start_time</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 0; color: #777; font-size: 14px;'>Number of Cats:</td>
+                            <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$cats cat(s)</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 0; color: #777; font-size: 14px;'>Care Address:</td>
+                            <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$location</td>
+                        </tr>
+                        <tr style='border-top: 1px solid #eee;'>
+                            <td style='padding: 15px 0 0 0; font-size: 16px; font-weight: bold; color: #ff9800;'>Total Amount Paid:</td>
+                            <td style='padding: 15px 0 0 0; font-size: 18px; font-weight: bold; color: #333; text-align: right;'>RM $amount</td>
+                        </tr>
+                    </table>
+                    
+                    <p style='font-size: 14px; color: #666;'>You can contact your sitter directly via our chat system or WhatsApp to coordinate instructions.</p>
+                </div>
+                <div style='text-align: center; margin-top: 20px; color: #aaa; font-size: 12px;'>
+                    Thank you for choosing WhiskerHub!
+                </div>
+            </div>
+        ";
+
+        $sent_owner = sendBrevoEmail($customer_email, $owner_name, $subject_owner, $body_owner, 'aisyahsalihah22@gmail.com', 'WhiskerHub System');
+        if ($sent_owner) {
+            $email_status = "Invoice email has been sent to your email ($customer_email).";
+        } else {
+            $email_status = "Invoice email could not be sent.";
+        }
+
+        // 3. Format & Send English Job Notification to Cat Sitter
+        if (!empty($sitter_mail)) {
+            $protocol = "http://";
+            if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443) {
+                $protocol = "https://";
+            }
+            $host = $_SERVER['HTTP_HOST'];
+            $current_dir = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+            $sitter_redirect_url = $protocol . $host . $current_dir . "/bookingterkini.php";
+
+            $subject_sitter = "WhiskerHub - New Booking Job Received! (#$booking_id)";
+            $body_sitter = "
+                <div style='font-family: \"Segoe UI\", Arial, sans-serif; padding: 30px; background-color: #f7f9fa; max-width: 600px; margin: auto; border-radius: 12px;'>
+                    <div style='text-align: center; margin-bottom: 20px;'>
+                        <h2 style='color: #4caf50; font-size: 28px; margin: 0; font-weight: 800;'>🐾 WHISKERHUB</h2>
+                        <p style='color: #777; margin: 5px 0 0 0; font-size: 14px;'>New Booking Job Received</p>
+                    </div>
+                    <div style='background: white; padding: 25px; border-radius: 10px; border-top: 5px solid #4caf50;'>
+                        <p style='font-size: 16px; color: #333; margin-top: 0;'>Hello, <strong>$sitter_name</strong>! You have received a new booking request from <strong>$owner_name</strong>.</p>
+                        
+                        <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                            <tr>
+                                <td style='padding: 8px 0; color: #777; font-size: 14px;'>Booking ID:</td>
+                                <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>#$booking_id</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #777; font-size: 14px;'>Cat Owner:</td>
+                                <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$owner_name</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #777; font-size: 14px;'>Service Type:</td>
+                                <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$service</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #777; font-size: 14px;'>Dates:</td>
+                                <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$start_date to $end_date</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #777; font-size: 14px;'>Start Time:</td>
+                                <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$start_time</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #777; font-size: 14px;'>Number of Cats:</td>
+                                <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$cats cat(s)</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #777; font-size: 14px;'>Care Location:</td>
+                                <td style='padding: 8px 0; font-weight: bold; color: #333; text-align: right;'>$location</td>
+                            </tr>
+                            <tr style='border-top: 1px solid #eee;'>
+                                <td style='padding: 15px 0 0 0; font-size: 16px; font-weight: bold; color: #4caf50;'>Estimated Earnings:</td>
+                                <td style='padding: 15px 0 0 0; font-size: 18px; font-weight: bold; color: #333; text-align: right;'>RM $amount</td>
+                            </tr>
+                        </table>
+                        
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='$sitter_redirect_url' style='background-color: #4caf50; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 15px;'>Manage Booking Details</a>
+                        </div>
+                        
+                        <p style='font-size: 12px; color: #888; text-align: center;'>If the button above doesn't work, copy & paste this link into your browser:<br>$sitter_redirect_url</p>
+                    </div>
+                    <div style='text-align: center; margin-top: 20px; color: #aaa; font-size: 12px;'>
+                        WhiskerHub Sitter Community
+                    </div>
+                </div>
+            ";
+            
+            sendBrevoEmail($sitter_mail, $sitter_name, $subject_sitter, $body_sitter, 'aisyahsalihah22@gmail.com', 'WhiskerHub System');
+        }
     } else {
-        $email_status = "Invoice email could not be sent (please check Brevo setup).";
+        $email_status = "Payment verified, but booking data could not be fetched for invoices.";
     }
 } else {
     $email_status = "Incomplete booking details for email delivery.";
