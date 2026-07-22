@@ -358,7 +358,10 @@ window.searchSitters = function () {
                 return false; // Not available
             }
 
-         const sortBy = document.getElementById("searchSort").value;
+            return true;
+        });
+
+    const sortBy = document.getElementById("searchSort").value;
  
     if (sortBy === "price_low") {
         filtered.sort((a, b) => {
