@@ -75,7 +75,7 @@
             </div>
         </div>
         <div>
-            <label style="font-size: 14px; margin-bottom: 5px; display: block; font-weight: bold;">Daycare Rate (RM / hour)</label>
+            <label style="font-size: 14px; margin-bottom: 5px; display: block; font-weight: bold;">Daycare Rate (RM / visit)</label>
             <div class="price-input-wrapper">
                 <span>RM</span>
                 <input type="number" id="rate_daycare" placeholder="0.00" step="0.50">
@@ -90,6 +90,18 @@
         </div>
     </div>
 </div>
+            <div class="input-group" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <label style="font-weight: bold; margin-bottom: 5px; display: block;">Add-on Services (Optional)</label>
+                <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Define custom services you can offer and set your own prices.</p>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="addon_name" placeholder="e.g. Deep Cleaning, Medication" style="flex: 2; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <input type="number" id="addon_price" placeholder="0.00" step="0.50" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <button type="button" id="btnAddAddon" style="background: #ff7a8a; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;">Add</button>
+                </div>
+                <div id="addonsList" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Added addons will appear here -->
+                </div>
+            </div>
             <button type="submit" class="btn-register">Apply to Become a Sitter</button>
         </form>
     </div>
@@ -116,6 +128,48 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 
 let cachedUserData = null;
+let customAddons = [];
+
+// Handle adding custom addon
+document.getElementById("btnAddAddon").addEventListener("click", () => {
+    const nameInput = document.getElementById("addon_name");
+    const priceInput = document.getElementById("addon_price");
+    const name = nameInput.value.trim();
+    const price = parseFloat(priceInput.value) || 0;
+
+    if (!name) {
+        alert("Please enter add-on service name");
+        return;
+    }
+    if (price <= 0) {
+        alert("Please enter a valid price");
+        return;
+    }
+
+    customAddons.push({ name, price });
+    nameInput.value = "";
+    priceInput.value = "";
+    renderAddonsList();
+});
+
+function renderAddonsList() {
+    const list = document.getElementById("addonsList");
+    list.innerHTML = "";
+    customAddons.forEach((addon, idx) => {
+        const item = document.createElement("div");
+        item.style = "display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px 12px; border: 1px solid #eee; border-radius: 8px; font-size: 14px;";
+        item.innerHTML = `
+            <span><strong>${addon.name}</strong> (+RM ${addon.price.toFixed(2)})</span>
+            <button type="button" style="background: #ff5c5c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;" onclick="removeAddon(${idx})">Remove</button>
+        `;
+        list.appendChild(item);
+    });
+}
+
+window.removeAddon = function(idx) {
+    customAddons.splice(idx, 1);
+    renderAddonsList();
+};
 
 // 🔥 AUTO-FILL USER DATA
 onAuthStateChanged(auth, async (user) => {
@@ -197,6 +251,7 @@ document.getElementById("sitterForm").addEventListener("submit", async (e) => {
 
                 fld_user_jenisPerkhidmatan: services,
                 fld_user_ketersediaan: "Available",
+                fld_user_addons: customAddons,
 
                 // Save picture URLs from existing profile
                 fld_user_avatar: avatarUrl,

@@ -125,6 +125,11 @@
 
     <p id="sitterBio"></p>
 
+    <div id="addonsSection" style="margin-top: 20px; display: none; background: #fff5f6; border: 1px dashed #ffb6c1; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #ff7a8a; font-size: 16px;">Add-on Services Available</h3>
+        <ul id="addonsList" style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"></ul>
+    </div>
+
     <div class="review-section">
         <h3>Reviews</h3>
         <div id="reviewList"></div>
@@ -207,14 +212,36 @@ async function loadSitter(){
 
     let priceText = "";
     if (data.fld_rate_boarding && Number(data.fld_rate_boarding) > 0) priceText += `Boarding: RM ${data.fld_rate_boarding}/day | `;
-    if (data.fld_rate_daycare && Number(data.fld_rate_daycare) > 0) priceText += `Daycare: RM ${data.fld_rate_daycare}/hour | `;
+    if (data.fld_rate_daycare && Number(data.fld_rate_daycare) > 0) priceText += `Daycare: RM ${data.fld_rate_daycare}/visit | `;
     if (data.fld_rate_grooming && Number(data.fld_rate_grooming) > 0) priceText += `Grooming: RM ${data.fld_rate_grooming}/session`;
     if (priceText.endsWith(" | ")) priceText = priceText.slice(0, -3);
-    if (!priceText) priceText = "RM " + (data.fld_user_kadarBayaran || "0") + "/hour";
+    if (!priceText) priceText = "RM " + (data.fld_user_kadarBayaran || "0") + "/visit";
     document.getElementById("sitterPrice").innerText = priceText;
 
     document.getElementById("sitterBio").innerText =
         data.fld_user_pengalaman;
+
+    // Render Custom Add-ons
+    const addonsSection = document.getElementById("addonsSection");
+    const addonsList = document.getElementById("addonsList");
+    if (addonsSection && addonsList) {
+        addonsList.innerHTML = "";
+        const addons = data.fld_user_addons || [];
+        if (addons.length > 0) {
+            addonsSection.style.display = "block";
+            addons.forEach(addon => {
+                const li = document.createElement("li");
+                li.style = "display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid #ffeff0; font-size: 13px;";
+                li.innerHTML = `
+                    <span style="font-weight: 600; color: #555;">${addon.name}</span>
+                    <span style="color: #ff7a8a; font-weight: bold;">+RM ${parseFloat(addon.price).toFixed(2)}</span>
+                `;
+                addonsList.appendChild(li);
+            });
+        } else {
+            addonsSection.style.display = "none";
+        }
+    }
 
     // image — fallback to a clean SVG avatar if no photo saved yet
     const FALLBACK_AVATAR = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f5f5f5'/%3E%3Ccircle cx='150' cy='115' r='55' fill='%23d9d9d9'/%3E%3Cellipse cx='150' cy='260' rx='90' ry='60' fill='%23d9d9d9'/%3E%3C/svg%3E`;

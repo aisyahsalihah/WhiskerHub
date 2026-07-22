@@ -41,9 +41,9 @@
             <div class="input-group">
                     <label>SERVICE TYPE :</label>
                     <select id="service_type">
-                    <option value="boarding">Boarding (Overnight)</option>
-                    <option value="house_sitting">House Sitting</option>
-                    <option value="drop_in">Drop-in Visits</option>
+                    <option value="boarding">Boarding</option>
+                    <option value="daycare">Daycare</option>
+                    <option value="grooming">Grooming</option>
                 </select>
             </div>
 
@@ -88,6 +88,13 @@
                <label>FULL ADDRESS (Cat Location) :</label>
                <textarea id="full_address" rows="3" placeholder="Enter complete address for sitter reference" required></textarea>
             </div>
+
+            <div class="input-group full-width" id="sitter_addons_group" style="display: none; background: #fff5f6; border: 1px dashed #ffb6c1; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <label style="font-weight: bold; color: #ff7a8a; display: block; margin-bottom: 8px;">SELECT ADD-ON SERVICES :</label>
+                <div id="sitter_addons_list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Addons checkboxes rendered dynamically -->
+                </div>
+             </div>
 
             <div class="payment-summary">
                 <div class="summary-item">
@@ -157,13 +164,8 @@ function isOverlapping(dateFrom1, timeFrom1, dateTo1, timeTo1, dateFrom2, timeFr
 
 // --- TOGGLE HOURS GROUP DISPLAY ---
 function handleServiceChange() {
-    const service = document.getElementById('service_type').value;
     const hoursGroup = document.getElementById('hours_input_group');
-    if (service === 'boarding' || service === 'grooming') {
-        hoursGroup.style.display = 'none';
-    } else {
-        hoursGroup.style.display = 'block';
-    }
+    hoursGroup.style.display = 'none'; // Hidden for all services as Daycare is now per-visit
     calculateTotal();
 }
 document.getElementById('service_type').addEventListener('change', handleServiceChange);
@@ -173,8 +175,6 @@ function calculateTotal() {
     const start = new Date(document.getElementById('start_date').value);
     const end = new Date(document.getElementById('end_date').value);
     const service = document.getElementById('service_type').value;
-    const isFlatRate = (service === 'boarding' || service === 'grooming');
-    const hours = isFlatRate ? 24 : (parseInt(document.getElementById('hours_per_day').value) || 0);
     const cats = parseInt(document.getElementById('cat_count').value) || 1;
 
     if (start && end && end >= start) {
@@ -199,9 +199,9 @@ function calculateTotal() {
         };
 
         // Validate against other active bookings
-        const startTimeStr = isFlatRate ? "00:00" : document.getElementById('start_time').value;
-        if (isFlatRate || startTimeStr) {
-            const endTimeStr = isFlatRate ? "23:59" : addHoursToTime(startTimeStr, hours);
+        const startTimeStr = document.getElementById('start_time').value;
+        if (startTimeStr) {
+            const endTimeStr = addHoursToTime(startTimeStr, 24);
             const hasOverlap = activeBookings.some(b => {
                 return isOverlapping(
                     startStr, startTimeStr, endStr, endTimeStr,
@@ -211,7 +211,7 @@ function calculateTotal() {
             });
             if (hasOverlap) {
                 alert("The sitter already has another booking during this date and time slot.");
-                if (!isFlatRate) document.getElementById('start_time').value = "";
+                document.getElementById('start_time').value = "";
                 document.querySelector('.payment-summary .summary-item.total span:last-child').innerText = `RM 0.00`;
                 return 0;
             }
@@ -229,6 +229,13 @@ function calculateTotal() {
             activeRate = rates.grooming;
         }
 
+        // Calculate Addons Total
+        let addonsTotal = 0;
+        document.querySelectorAll(".sitter-addon-checkbox:checked").forEach(cb => {
+            const price = parseFloat(cb.getAttribute("data-price")) || 0;
+            addonsTotal += price;
+        });
+
         if (service === 'boarding') {
             const firstCatRate = activeRate;
             const additionalCatRate = activeRate * 0.5;
@@ -239,14 +246,43 @@ function calculateTotal() {
                 labelText += ` + RM ${additionalCatRate.toFixed(2)}/day (additional ${cats - 1} cats)`;
             }
             labelText += ` x ${diffDays}days`;
+            if (addonsTotal > 0) labelText += ` + RM ${addonsTotal.toFixed(2)} (Add-ons)`;
             document.querySelector('.payment-summary .summary-item span:last-child').innerText = labelText;
         } else if (service === 'grooming') {
             total = activeRate * diffDays * cats;
-            document.querySelector('.payment-summary .summary-item span:last-child').innerText = `RM ${activeRate.toFixed(2)}/session x ${diffDays}days x ${cats}cats`;
+            let labelText = `RM ${activeRate.toFixed(2)}/session x ${diffDays}days x ${cats}cats`;
+            if (addonsTotal > 0) labelText += ` + RM ${addonsTotal.toFixed(2)} (Add-ons)`;
+            document.querySelector('.payment-summary .summary-item span:last-child').innerText = labelText;
         } else {
-            total = activeRate * hours * diffDays * cats;
-            document.querySelector('.payment-summary .summary-item span:last-child').innerText = `RM ${activeRate.toFixed(2)}/hr x ${hours}hrs x ${diffDays}days x ${cats}cats`;
+            // Daycare tiered pricing:
+            // 1-3 cats: Base Daycare rate
+            // 4-6 cats: Base x 1.5
+            // 7-10 cats: Base x 2
+            // 11-20 cats: (Base x 2) + RM 5/cat above 10
+            // 21+ cats: (Base x 2) + RM 50 + RM 3/cat above 20
+            let baseDaycarePrice = activeRate;
+            let tierLabel = "1-3 cats";
+            if (cats >= 4 && cats <= 6) {
+                baseDaycarePrice = activeRate * 1.5;
+                tierLabel = "4-6 cats";
+            } else if (cats >= 7 && cats <= 10) {
+                baseDaycarePrice = activeRate * 2.0;
+                tierLabel = "7-10 cats";
+            } else if (cats >= 11 && cats <= 20) {
+                baseDaycarePrice = (activeRate * 2.0) + (cats - 10) * 5.00;
+                tierLabel = "11-20 cats (+RM5/cat above 10)";
+            } else if (cats >= 21) {
+                baseDaycarePrice = (activeRate * 2.0) + 50.00 + (cats - 20) * 3.00;
+                tierLabel = "21+ cats (+RM3/cat above 20)";
+            }
+            total = baseDaycarePrice * diffDays;
+
+            let labelText = `Daycare (${tierLabel}): RM ${baseDaycarePrice.toFixed(2)}/visit x ${diffDays}days`;
+            if (addonsTotal > 0) labelText += ` + RM ${addonsTotal.toFixed(2)} (Add-ons)`;
+            document.querySelector('.payment-summary .summary-item span:last-child').innerText = labelText;
         }
+
+        total += addonsTotal;
 
         document.querySelector('.payment-summary .summary-item.total span:last-child').innerText = `RM ${total.toFixed(2)}`;
         return total;
@@ -255,7 +291,7 @@ function calculateTotal() {
 }
 
 // Listeners for price auto-updates
-['start_date', 'end_date', 'start_time', 'hours_per_day', 'cat_count'].forEach(id => {
+['start_date', 'end_date', 'start_time', 'cat_count'].forEach(id => {
     document.getElementById(id).addEventListener('input', calculateTotal);
 });
 
@@ -285,6 +321,31 @@ auth.onAuthStateChanged(async (user) => {
                     rates.daycare = parseFloat(sData.fld_rate_daycare) || currentHourlyRate || 5;
                     rates.grooming = parseFloat(sData.fld_rate_grooming) || currentHourlyRate || 15;
                     sitterUnavailableDates = sData.fld_user_unavailableDates || [];
+
+                    // Render sitter custom addons
+                    const addonsGroup = document.getElementById("sitter_addons_group");
+                    const addonsList = document.getElementById("sitter_addons_list");
+                    if (addonsGroup && addonsList) {
+                        addonsList.innerHTML = "";
+                        const addons = sData.fld_user_addons || [];
+                        if (addons.length > 0) {
+                            addonsGroup.style.display = "block";
+                            addons.forEach((addon, idx) => {
+                                const div = document.createElement("div");
+                                div.style = "display: flex; align-items: center; gap: 10px; font-size: 14px; background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid #ffeff0;";
+                                div.innerHTML = `
+                                    <input type="checkbox" class="sitter-addon-checkbox" id="addon_${idx}" data-name="${addon.name}" data-price="${addon.price}" style="width: 18px; height: 18px; cursor: pointer;">
+                                    <label for="addon_${idx}" style="cursor: pointer; flex-grow: 1; margin: 0; font-weight: 500; color: #555;">
+                                        ${addon.name} <span style="color: #ff7a8a; font-weight: bold; margin-left: 5px;">(+RM ${parseFloat(addon.price).toFixed(2)})</span>
+                                    </label>
+                                `;
+                                addonsList.appendChild(div);
+                                div.querySelector("input").addEventListener("change", calculateTotal);
+                            });
+                        } else {
+                            addonsGroup.style.display = "none";
+                        }
+                    }
 
                     // Load active bookings for this sitter
                     const q = query(collection(db, "tempahan"), where("fld_penjaga_ID", "==", sitterId));
@@ -335,6 +396,14 @@ document.getElementById('bookingForm').addEventListener('submit', async (e) => {
     const hoursVal = parseInt(document.getElementById('hours_per_day').value) || 0;
     const computedEndTimeVal = addHoursToTime(startTimeVal, hoursVal);
 
+    let selectedAddonsList = [];
+    document.querySelectorAll(".sitter-addon-checkbox:checked").forEach(cb => {
+        selectedAddonsList.push({
+            name: cb.getAttribute("data-name"),
+            price: parseFloat(cb.getAttribute("data-price")) || 0
+        });
+    });
+
     const bookingData = {
         fld_pemilik_ID: auth.currentUser.uid,
         fld_penjaga_ID: document.getElementById('fld_penjaga_ID').value,
@@ -348,6 +417,7 @@ document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         fld_tempahan_bilKucing: document.getElementById('cat_count').value,
         fld_tempahan_jumlah: finalTotal,
         fld_tempahan_status: "Unpaid", // Initial status
+        fld_tempahan_addons: selectedAddonsList,
         fld_tempahan_masaDibuat: serverTimestamp(),
         fld_unread_by: [document.getElementById('fld_penjaga_ID').value]
     };
