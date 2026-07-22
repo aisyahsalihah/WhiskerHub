@@ -358,16 +358,22 @@ window.searchSitters = function () {
                 return false; // Not available
             }
 
-            return true;
-        });
-
-    const sortBy = document.getElementById("searchSort").value;
-
+         const sortBy = document.getElementById("searchSort").value;
+ 
     if (sortBy === "price_low") {
         filtered.sort((a, b) => {
             const getPrice = (s) => {
-                if (service === "boarding") return Number(s.fld_rate_boarding || s.fld_user_kadarBayaran || 0);
-                if (service === "grooming") return Number(s.fld_rate_grooming || s.fld_user_kadarBayaran || 0);
+                let targetSvc = service;
+                if (!targetSvc) {
+                    let svcs = s.fld_user_jenisPerkhidmatan;
+                    if (typeof svcs === "string") svcs = svcs.split(",");
+                    svcs = (svcs || []).map(x => x.trim().toLowerCase());
+                    if (svcs.includes("boarding")) targetSvc = "boarding";
+                    else if (svcs.includes("daycare")) targetSvc = "daycare";
+                    else if (svcs.includes("grooming")) targetSvc = "grooming";
+                }
+                if (targetSvc === "boarding") return Number(s.fld_rate_boarding || s.fld_user_kadarBayaran || 0);
+                if (targetSvc === "grooming") return Number(s.fld_rate_grooming || s.fld_user_kadarBayaran || 0);
                 return Number(s.fld_rate_daycare || s.fld_user_kadarBayaran || 0);
             };
             return getPrice(a) - getPrice(b);
@@ -375,8 +381,17 @@ window.searchSitters = function () {
     } else if (sortBy === "price_high") {
         filtered.sort((a, b) => {
             const getPrice = (s) => {
-                if (service === "boarding") return Number(s.fld_rate_boarding || s.fld_user_kadarBayaran || 0);
-                if (service === "grooming") return Number(s.fld_rate_grooming || s.fld_user_kadarBayaran || 0);
+                let targetSvc = service;
+                if (!targetSvc) {
+                    let svcs = s.fld_user_jenisPerkhidmatan;
+                    if (typeof svcs === "string") svcs = svcs.split(",");
+                    svcs = (svcs || []).map(x => x.trim().toLowerCase());
+                    if (svcs.includes("boarding")) targetSvc = "boarding";
+                    else if (svcs.includes("daycare")) targetSvc = "daycare";
+                    else if (svcs.includes("grooming")) targetSvc = "grooming";
+                }
+                if (targetSvc === "boarding") return Number(s.fld_rate_boarding || s.fld_user_kadarBayaran || 0);
+                if (targetSvc === "grooming") return Number(s.fld_rate_grooming || s.fld_user_kadarBayaran || 0);
                 return Number(s.fld_rate_daycare || s.fld_user_kadarBayaran || 0);
             };
             return getPrice(b) - getPrice(a);
@@ -431,16 +446,30 @@ function display(sitters) {
 
         const activeService = (document.getElementById("searchService").value || "").toLowerCase();
         let displayPrice = s.fld_user_kadarBayaran || 0;
-        let displayUnit = "/hr";
-        if (activeService === "boarding") {
+        let displayUnit = "/visit";
+
+        let targetSvc = activeService;
+        if (!targetSvc) {
+            let svcs = s.fld_user_jenisPerkhidmatan;
+            if (typeof svcs === "string") svcs = svcs.split(",");
+            svcs = (svcs || []).map(x => x.trim().toLowerCase());
+            if (svcs.includes("boarding")) targetSvc = "boarding";
+            else if (svcs.includes("daycare")) targetSvc = "daycare";
+            else if (svcs.includes("grooming")) targetSvc = "grooming";
+        }
+
+        if (targetSvc === "boarding") {
             displayPrice = s.fld_rate_boarding || s.fld_user_kadarBayaran || 0;
             displayUnit = "/day";
-        } else if (activeService === "grooming") {
+        } else if (targetSvc === "grooming") {
             displayPrice = s.fld_rate_grooming || s.fld_user_kadarBayaran || 0;
             displayUnit = "/session";
-        } else if (activeService === "daycare") {
+        } else if (targetSvc === "daycare") {
             displayPrice = s.fld_rate_daycare || s.fld_user_kadarBayaran || 0;
-            displayUnit = "/hr";
+            displayUnit = "/visit";
+        } else {
+            displayPrice = s.fld_user_kadarBayaran || 0;
+            displayUnit = "/visit";
         }
 
         html += `
