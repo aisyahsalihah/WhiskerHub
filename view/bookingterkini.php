@@ -547,6 +547,53 @@ window.openCompletionModal = function(bookingId, ownerId) {
     document.getElementById("completionModal").style.display = "block";
 };
 
+// --- IMAGE COMPRESSION HELPER ---
+function compressImage(file, maxWidth = 1024, maxHeight = 1024, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        }));
+                    } else {
+                        reject(new Error('Canvas toBlob returned null'));
+                    }
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+}
+
 window.submitCompletion = async function() {
     const file = document.getElementById("completionProof").files[0];
     const note = document.getElementById("completionNote").value;
@@ -557,12 +604,20 @@ window.submitCompletion = async function() {
         return;
     }
 
-    btn.innerText = "Uploading...";
+    btn.innerText = "Compressing & Uploading...";
     btn.disabled = true;
 
     try {
-        const storageRef = ref(storage, `completion_proofs/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytesResumable(storageRef, file);
+        // Compress the image before uploading to Storage
+        let uploadFile = file;
+        try {
+            uploadFile = await compressImage(file);
+        } catch (compErr) {
+            console.warn("Compression failed, uploading original file:", compErr);
+        }
+
+        const storageRef = ref(storage, `completion_proofs/${Date.now()}_${uploadFile.name}`);
+        const snapshot = await uploadBytesResumable(storageRef, uploadFile);
         const downloadURL = await getDownloadURL(snapshot.ref);
 
         await updateDoc(doc(db, "tempahan", currentCompletionBookingId), {

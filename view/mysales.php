@@ -301,6 +301,53 @@ window.openShipModal = function(orderId, email) {
     document.getElementById('shipModal').style.display = 'block';
 }
 
+// --- IMAGE COMPRESSION HELPER ---
+function compressImage(file, maxWidth = 1024, maxHeight = 1024, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        }));
+                    } else {
+                        reject(new Error('Canvas toBlob returned null'));
+                    }
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+}
+
 window.submitShipping = async function() {
     const orderId = document.getElementById('shipOrderId').value;
     const email = document.getElementById('shipBuyerEmail').value;
@@ -313,13 +360,21 @@ window.submitShipping = async function() {
         return;
     }
 
-    btn.innerText = "Uploading...";
+    btn.innerText = "Compressing & Uploading...";
     btn.disabled = true;
 
     try {
+        // Compress the image client-side before uploading
+        let uploadFile = file;
+        try {
+            uploadFile = await compressImage(file);
+        } catch (compErr) {
+            console.warn("Compression failed, uploading original file:", compErr);
+        }
+
         // 1. Upload Image to Storage
-        const storageRef = ref(storage, `shipping_proofs/${orderId}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
+        const storageRef = ref(storage, `shipping_proofs/${orderId}_${uploadFile.name}`);
+        const snapshot = await uploadBytes(storageRef, uploadFile);
         const downloadURL = await getDownloadURL(snapshot.ref);
 
         // 2. Update Firestore Document
@@ -329,7 +384,7 @@ window.submitShipping = async function() {
             fld_shipping_image: downloadURL
         });
 
-        // 3. Trigger Email Notification via PHP
+        // 3. Trigger Email Notification via PHP (asynchronously)
         if (email) {
             const formData = new FormData();
             formData.append('order_id', orderId);
@@ -337,13 +392,13 @@ window.submitShipping = async function() {
             formData.append('tracking', trackNum);
             formData.append('image_url', downloadURL);
 
-            await fetch('send_shipping_email.php', {
+            fetch('send_shipping_email.php', {
                 method: 'POST',
                 body: formData
-            });
+            }).catch(err => console.error("Async email dispatch failed:", err));
         }
 
-        alert("Order Shipped and Buyer Notified!");
+        alert("Order Shipped successfully!");
         location.reload();
     } catch(err) {
         console.error("Shipping error:", err);
