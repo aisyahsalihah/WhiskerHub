@@ -333,6 +333,13 @@ auth.onAuthStateChanged(async (user) => {
                 }
             }
 
+            let addonsHTML = "None";
+            if (booking.fld_tempahan_addons && booking.fld_tempahan_addons.length > 0) {
+                addonsHTML = booking.fld_tempahan_addons.map(addon => {
+                    return `<span style="background: #fff5f6; color: #ff7a8a; border: 1px dashed #ffb6c1; padding: 3px 8px; border-radius: 6px; font-size: 11px; margin-right: 5px; font-weight: bold; display: inline-block;">${addon.name} (+RM ${parseFloat(addon.price).toFixed(2)})</span>`;
+                }).join("");
+            }
+
             const card = document.createElement("div");
             card.className = "booking-box";
             card.innerHTML = `
@@ -348,7 +355,11 @@ auth.onAuthStateChanged(async (user) => {
                     ${catInfoHTML}
                     <tr>
                         <td><strong>SERVICE:</strong></td>
-                        <td>${booking.fld_tempahan_servis || "-"}</td>
+                        <td><span style="text-transform: capitalize;">${booking.fld_tempahan_servis || "-"}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ADD-ON SERVICES:</strong></td>
+                        <td>${addonsHTML}</td>
                     </tr>
                     <tr>
                         <td><strong>CATS:</strong></td>
